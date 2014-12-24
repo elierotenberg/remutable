@@ -5,12 +5,16 @@ const MUTATIONS = {
   DEL: 'd',
 };
 
+function salt() {
+  return _.random(0, Number.MAX_VALUE - 1);
+}
+
 class Remutable {
   constructor() {
     this._data = {};
     this._mutations = {};
     this._version = 0;
-    this._remutableId = _.random(0, 4294967296);
+    this._hash = salt();
   }
 
   get(key) {
@@ -38,13 +42,48 @@ class Remutable {
     this._mutations[key] = { d: MUTATIONS.DEL };
   }
 
+  keys() {
+    let keysMap = {};
+    Object.keys(this._data).forEach((key) => {
+      keysMap[key] = true;
+    });
+    Object.keys(this._mutations).forEach((key) => {
+      const { m } = this._mutations[key];
+      if(m === MUTATIONS.SET) {
+        keysMap[key] = true;
+      }
+      if(m === MUTATIONS.DEL) {
+        delete keysMap[key];
+      }
+    });
+    return Object.keys(keysMap);
+  }
+
+  map(fn) { // fn(value, key): any
+    return this.keys().map((key) => fn(this.get(key), key));
+  }
+
+  destroy() {
+    this._mutations = null;
+    this._data = null;
+    this._version = {}; // === this._version will always be falsy
+    this._hash = {}; // === this._hash will always be falsy
+  }
+
   commit() {
     return this._applyPatchWithoutCheckingMutations({
-      remutableId: this._remutableId,
       mutations: this._mutations,
-      prev: this._version,
-      next: this._version + 1,
+      version: this._version,
+      hash: this._hash,
+      nextVersion: this._version + 1,
+      nextHash: salt(),
     });
+  }
+
+  equals(remutable) {
+    this._mutations.should.eql({});
+    remutable._mutations.should.eql({});
+    return this._hash === remutable._hash && this._version === remutable._version;
   }
 
   rollback() {
@@ -52,12 +91,12 @@ class Remutable {
   }
 
   canApply(patch) {
-    const { remutableId, prev } = patch;
-    return (this._remutableId === remutableId && this._version === prev);
+    const { hash, version } = patch;
+    return (this._hash === hash && this._version === version);
   }
 
   _applyPatchWithoutCheckingMutations(patch) {
-    const { mutations, next } = patch;
+    const { mutations, nextVersion, nextHash } = patch;
     this.canApply(patch).should.be.ok;
     Object.keys(mutations).forEach((key) => {
       const { m, v } = this._mutations[key];
@@ -68,7 +107,8 @@ class Remutable {
         this._data[key] = v;
       }
     });
-    this._version = next;
+    this._version = nextVersion;
+    this._hash = nextHash;
     this._mutations = {};
     return patch;
   }
@@ -80,20 +120,20 @@ class Remutable {
 
   serialize() {
     return JSON.stringify({
-      remutableId: this._remutableId,
+      hash: this._hash,
       version: this._version,
       data: this._data,
     });
   }
 
   static unserialize(serialized) {
-    const { remutableId, version, data } = JSON.parse(serialized);
-    _.dev(() => remutableId.should.be.a.Number &&
+    const { hash, version, data } = JSON.parse(serialized);
+    _.dev(() => hash.should.be.a.Number &&
       version.should.be.a.Number &&
       data.should.be.an.Object
     );
     const remutable = new Remutable();
-    remutable._remutableId = remutableId;
+    remutable._hash = hash;
     remutable._version = version;
     remutable._data = data;
     return remutable;
@@ -104,7 +144,7 @@ _.extend(Remutable.prototype, {
   _data: null,
   _mutations: null,
   _version: null,
-  _remutableId: null,
+  _hash: null,
 });
 
 module.exports = Remutable;
