@@ -1,21 +1,21 @@
 {
-  "name": "my-starterkit",
-  "version": "1.0.1",
-  "description": "",
+  "name": "remutable",
+  "version": "0.0.0",
+  "description": "Like Immutable, but actually mutable with diffs and versions.",
   "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/elierotenberg/my-starterkit.git"
+    "url": "https://github.com/elierotenberg/remutable.git"
   },
   "author": "Elie Rotenberg <elie@rotenberg.io>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/elierotenberg/my-starterkit/issues"
+    "url": "https://github.com/elierotenberg/remutable/issues"
   },
-  "homepage": "https://github.com/elierotenberg/my-starterkit",
+  "homepage": "https://github.com/elierotenberg/remutable",
   "devDependencies": {
     "del": "^0.1.3",
     "gulp": "^3.8.10",
