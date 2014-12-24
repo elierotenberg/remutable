@@ -1,5 +1,10 @@
 "use strict";
 
+var _classProps = function (child, staticProps, instanceProps) {
+  if (staticProps) Object.defineProperties(child, staticProps);
+  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
+};
+
 require("6to5/polyfill");var Promise = (global || window).Promise = require("lodash-next").Promise;var __DEV__ = (process.env.NODE_ENV !== "production");var __PROD__ = !__DEV__;var __BROWSER__ = (typeof window === "object");var __NODE__ = !__BROWSER__;var _ = require("lodash-next");
 
 var MUTATIONS = {
@@ -153,6 +158,14 @@ var Remutable = (function () {
     remutable._data = d;
     return remutable;
   };
+
+  _classProps(Remutable, null, {
+    uid: {
+      get: function () {
+        return "" + this._hash + ":" + this._version;
+      }
+    }
+  });
 
   return Remutable;
 })();

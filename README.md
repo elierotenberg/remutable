@@ -58,7 +58,7 @@ After a `.set`/`.del`, `.get` will return the cached, modified value.
 `r.checkout(key)`
 Return the value at `key` from the last commit (even if it was mutated in between).
 
-`r.keys`
+`r.keys()`
 
 Returns the list of keys in the remutable object, including new keys defined by `.set` and not including keys undefined by `.del` in the current mutations stack.
 
@@ -88,8 +88,11 @@ Checks that the patch is a fast-forward from the current object version (or thro
 
 Returns a string representation of `r`/constructs a Remutable object from a serialized string representation.
 
-`r1.equals(r2): boolean`/
+`r1.equals(r2): boolean`
 
 Instantly verifies if `r1` is `r2`.
 Note that `r1` and `r2` may wrap the same keys/values but not be equal, if they have diverged at some point.
 You may implement your own deep check, but as it is probably not relevant in most cases, I don't provide an implementation.
+
+`r.uid`
+Expose a string representation of the unique id of the remutable object and its current state, so that `r1.uid === r2.uid` is equivalent to `r1.equals(r2)` (though slower).

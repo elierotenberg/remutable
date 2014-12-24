@@ -4,6 +4,7 @@ var user1 = { id: 1325325, name: 'Isaac Asimov' };
 var user2 = { id: 5128581, name: 'Robert Heinlein' };
 var userList = new Remutable();
 console.log(userList.serialize());
+console.log(userList.uid);
 userList.set(user1.id, user1);
 userList.set(user2.id, user2);
 console.log(JSON.stringify(userList.commit())); // patch string
@@ -27,3 +28,4 @@ remoteUserList.set(user1.id, user2);
 remoteUserList.get(user1.id); // { id: 5128581, name: 'Robert Heinlein' }
 remoteUserList.rollback();
 console.log(remoteUserList.get(user1.id)); // undefined
+console.log(remoteUserList.uid);

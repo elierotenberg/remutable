@@ -19,6 +19,10 @@ class Remutable {
     this._hash = salt();
   }
 
+  get uid() {
+    return `${this._hash}:${this._version}`;
+  }
+
   get(key) {
     if(this._mutations[key] !== void 0) {
       const { m, v } = this._mutations[key];
