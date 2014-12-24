@@ -57,7 +57,7 @@ class Remutable {
   }
 
   _applyPatchWithoutCheckingMutations(patch) {
-    const { remutableId, mutations, prev, next } = patch;
+    const { mutations, next } = patch;
     this.canApply(patch).should.be.ok;
     Object.keys(mutations).forEach((key) => {
       const { m, v } = this._mutations[key];

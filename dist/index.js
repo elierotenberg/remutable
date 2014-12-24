@@ -28,6 +28,10 @@ var Remutable = (function () {
     return this._data[key];
   };
 
+  Remutable.prototype.checkout = function (key) {
+    return this._data[key];
+  };
+
   Remutable.prototype.set = function (key, val) {
     this._mutations[key] = { d: MUTATIONS.SET, v: val };
   };
@@ -48,14 +52,17 @@ var Remutable = (function () {
     this._mutations = {};
   };
 
+  Remutable.prototype.canApply = function (patch) {
+    var remutableId = patch.remutableId;
+    var prev = patch.prev;
+    return (this._remutableId === remutableId && this._version === prev);
+  };
+
   Remutable.prototype._applyPatchWithoutCheckingMutations = function (patch) {
     var _this = this;
-    var remutableId = patch.remutableId;
     var mutations = patch.mutations;
-    var prev = patch.prev;
     var next = patch.next;
-    this._remutableId.should.be.exactly(remutableId);
-    this._version.should.be.exactly(prev);
+    this.canApply(patch).should.be.ok;
     Object.keys(mutations).forEach(function (key) {
       var m = _this._mutations[key].m;
       var v = _this._mutations[key].v;
