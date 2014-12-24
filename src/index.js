@@ -26,6 +26,10 @@ class Remutable {
     return this._data[key];
   }
 
+  checkout(key) {
+    return this._data[key];
+  }
+
   set(key, val) {
     this._mutations[key] = { d: MUTATIONS.SET, v: val };
   }
@@ -47,10 +51,14 @@ class Remutable {
     this._mutations = {};
   }
 
+  canApply(patch) {
+    const { remutableId, prev } = patch;
+    return (this._remutableId === remutableId && this._version === prev);
+  }
+
   _applyPatchWithoutCheckingMutations(patch) {
     const { remutableId, mutations, prev, next } = patch;
-    this._remutableId.should.be.exactly(remutableId);
-    this._version.should.be.exactly(prev);
+    this.canApply(patch).should.be.ok;
     Object.keys(mutations).forEach((key) => {
       const { m, v } = this._mutations[key];
       if(m === MUTATIONS.DEL) {
