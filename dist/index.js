@@ -23,6 +23,7 @@ var Remutable = (function () {
     this._mutations = {};
     this._version = 0;
     this._hash = salt();
+    this._dirty = false;
   };
 
   Remutable.prototype.get = function (key) {
@@ -44,10 +45,12 @@ var Remutable = (function () {
   };
 
   Remutable.prototype.set = function (key, val) {
+    this._dirty = true;
     this._mutations[key] = { m: MUTATIONS.SET, v: val };
   };
 
   Remutable.prototype.del = function (key) {
+    this._dirty = true;
     this._mutations[key] = { m: MUTATIONS.DEL };
   };
 
@@ -85,7 +88,8 @@ var Remutable = (function () {
   };
 
   Remutable.prototype.commit = function () {
-    return this._applyPatchWithoutCheckingMutations({
+    this.dirty.should.be.ok;
+    return this._applyPatchWithoutDirtyChecking({
       m: this._mutations,
       v: this._version,
       h: this._hash,
@@ -94,13 +98,14 @@ var Remutable = (function () {
   };
 
   Remutable.prototype.equals = function (remutable) {
-    this._mutations.should.eql({});
-    remutable._mutations.should.eql({});
+    this.dirty.should.not.be.ok;
+    remutable.dirty.should.not.be.ok;
     return this._hash === remutable._hash && this._version === remutable._version;
   };
 
   Remutable.prototype.rollback = function () {
     this._mutations = {};
+    this._dirty = false;
   };
 
   Remutable.prototype.canApply = function (patch) {
@@ -109,7 +114,7 @@ var Remutable = (function () {
     return (this._hash === hash && this._version === version);
   };
 
-  Remutable.prototype._applyPatchWithoutCheckingMutations = function (patch) {
+  Remutable.prototype._applyPatchWithoutDirtyChecking = function (patch) {
     var _this3 = this;
     var mutations = patch.m;
     var nextVersion = patch.nv;
@@ -128,15 +133,17 @@ var Remutable = (function () {
     this._version = nextVersion;
     this._hash = nextHash;
     this._mutations = {};
+    this._dirty = false;
     return patch;
   };
 
   Remutable.prototype.apply = function (patch) {
-    this._mutations.should.eql({});
-    return this._applyPatchWithoutCheckingMutations(patch);
+    this.dirty.should.not.be.ok;
+    return this._applyPatchWithoutDirtyChecking(patch);
   };
 
   Remutable.prototype.serialize = function () {
+    this.dirty.should.not.be.ok;
     return JSON.stringify({
       h: this._hash,
       v: this._version,
@@ -164,6 +171,11 @@ var Remutable = (function () {
       get: function () {
         return "" + this._hash + ":" + this._version;
       }
+    },
+    dirty: {
+      get: function () {
+        return this._dirty;
+      }
     }
   });
 
@@ -174,6 +186,7 @@ _.extend(Remutable.prototype, {
   _data: null,
   _mutations: null,
   _version: null,
-  _hash: null });
+  _hash: null,
+  _dirty: null });
 
 module.exports = Remutable;

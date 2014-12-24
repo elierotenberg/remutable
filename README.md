@@ -96,3 +96,6 @@ You may implement your own deep check, but as it is probably not relevant in mos
 
 `r.uid`
 Expose a string representation of the unique id of the remutable object and its current state, so that `r1.uid === r2.uid` is equivalent to `r1.equals(r2)` (though slower).
+
+`r.dirty`
+Expose a boolean, indicating if there are pending, uncommited mutations.

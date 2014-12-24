@@ -17,10 +17,15 @@ class Remutable {
     this._mutations = {};
     this._version = 0;
     this._hash = salt();
+    this._dirty = false;
   }
 
   get uid() {
     return `${this._hash}:${this._version}`;
+  }
+
+  get dirty() {
+    return this._dirty;
   }
 
   get(key) {
@@ -41,10 +46,12 @@ class Remutable {
   }
 
   set(key, val) {
+    this._dirty = true;
     this._mutations[key] = { m: MUTATIONS.SET, v: val };
   }
 
   del(key) {
+    this._dirty = true;
     this._mutations[key] = { m: MUTATIONS.DEL };
   }
 
@@ -77,7 +84,8 @@ class Remutable {
   }
 
   commit() {
-    return this._applyPatchWithoutCheckingMutations({
+    this.dirty.should.be.ok;
+    return this._applyPatchWithoutDirtyChecking({
       m: this._mutations,
       v: this._version,
       h: this._hash,
@@ -87,13 +95,14 @@ class Remutable {
   }
 
   equals(remutable) {
-    this._mutations.should.eql({});
-    remutable._mutations.should.eql({});
+    this.dirty.should.not.be.ok;
+    remutable.dirty.should.not.be.ok;
     return this._hash === remutable._hash && this._version === remutable._version;
   }
 
   rollback() {
     this._mutations = {};
+    this._dirty = false;
   }
 
   canApply(patch) {
@@ -102,7 +111,7 @@ class Remutable {
     return (this._hash === hash && this._version === version);
   }
 
-  _applyPatchWithoutCheckingMutations(patch) {
+  _applyPatchWithoutDirtyChecking(patch) {
     const mutations = patch.m;
     const nextVersion = patch.nv;
     const nextHash = patch.nh;
@@ -119,15 +128,17 @@ class Remutable {
     this._version = nextVersion;
     this._hash = nextHash;
     this._mutations = {};
+    this._dirty = false;
     return patch;
   }
 
   apply(patch) {
-    this._mutations.should.eql({});
-    return this._applyPatchWithoutCheckingMutations(patch);
+    this.dirty.should.not.be.ok;
+    return this._applyPatchWithoutDirtyChecking(patch);
   }
 
   serialize() {
+    this.dirty.should.not.be.ok;
     return JSON.stringify({
       h: this._hash,
       v: this._version,
@@ -154,6 +165,7 @@ _.extend(Remutable.prototype, {
   _mutations: null,
   _version: null,
   _hash: null,
+  _dirty: null,
 });
 
 module.exports = Remutable;
