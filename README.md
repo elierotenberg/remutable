@@ -10,12 +10,16 @@ Implementation is extremely straightforward.
 Example
 =======
 ```js
+var Remutable = require('remutable');
 var user1 = { id: 1325325, name: 'Isaac Asimov' };
 var user2 = { id: 5128581, name: 'Robert Heinlein' };
 var userList = new Remutable();
+console.log(userList.serialize());
 userList.set(user1.id, user1);
-userList.commit();
+userList.set(user2.id, user2);
+console.log(JSON.stringify(userList.commit())); // patch string
 var str = userList.serialize();
+console.log(str);
 var remoteUserList = Remutable.unserialize(str);
 remoteUserList.equals(userList); // true
 remoteUserList.map(function(user) {
@@ -33,7 +37,7 @@ remoteUserList.map(function(user) {
 remoteUserList.set(user1.id, user2);
 remoteUserList.get(user1.id); // { id: 5128581, name: 'Robert Heinlein' }
 remoteUserList.rollback();
-remoteUserList.get(user1.id); // undefined
+console.log(remoteUserList.get(user1.id)); // undefined
 ```
 
 

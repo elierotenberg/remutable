@@ -5,8 +5,10 @@ const MUTATIONS = {
   DEL: 'd',
 };
 
+const INT_MAX = 9007199254740992;
+
 function salt() {
-  return _.random(0, Number.MAX_VALUE - 1);
+  return _.random(0, INT_MAX - 1);
 }
 
 class Remutable {
@@ -35,11 +37,11 @@ class Remutable {
   }
 
   set(key, val) {
-    this._mutations[key] = { d: MUTATIONS.SET, v: val };
+    this._mutations[key] = { m: MUTATIONS.SET, v: val };
   }
 
   del(key) {
-    this._mutations[key] = { d: MUTATIONS.DEL };
+    this._mutations[key] = { m: MUTATIONS.DEL };
   }
 
   keys() {
@@ -72,11 +74,11 @@ class Remutable {
 
   commit() {
     return this._applyPatchWithoutCheckingMutations({
-      mutations: this._mutations,
-      version: this._version,
-      hash: this._hash,
-      nextVersion: this._version + 1,
-      nextHash: salt(),
+      m: this._mutations,
+      v: this._version,
+      h: this._hash,
+      nv: this._version + 1,
+      nh: salt(),
     });
   }
 
@@ -91,15 +93,18 @@ class Remutable {
   }
 
   canApply(patch) {
-    const { hash, version } = patch;
+    const hash = patch.h;
+    const version = patch.v;
     return (this._hash === hash && this._version === version);
   }
 
   _applyPatchWithoutCheckingMutations(patch) {
-    const { mutations, nextVersion, nextHash } = patch;
+    const mutations = patch.m;
+    const nextVersion = patch.nv;
+    const nextHash = patch.nh;
     this.canApply(patch).should.be.ok;
     Object.keys(mutations).forEach((key) => {
-      const { m, v } = this._mutations[key];
+      const { m, v } = mutations[key];
       if(m === MUTATIONS.DEL) {
         delete this._data[key];
       }
@@ -120,22 +125,22 @@ class Remutable {
 
   serialize() {
     return JSON.stringify({
-      hash: this._hash,
-      version: this._version,
-      data: this._data,
+      h: this._hash,
+      v: this._version,
+      d: this._data,
     });
   }
 
   static unserialize(serialized) {
-    const { hash, version, data } = JSON.parse(serialized);
-    _.dev(() => hash.should.be.a.Number &&
-      version.should.be.a.Number &&
-      data.should.be.an.Object
+    const { h, v, d } = JSON.parse(serialized);
+    _.dev(() => h.should.be.a.Number &&
+      v.should.be.a.Number &&
+      d.should.be.an.Object
     );
     const remutable = new Remutable();
-    remutable._hash = hash;
-    remutable._version = version;
-    remutable._data = data;
+    remutable._hash = h;
+    remutable._version = v;
+    remutable._data = d;
     return remutable;
   }
 }

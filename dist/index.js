@@ -6,8 +6,10 @@ var MUTATIONS = {
   SET: "s",
   DEL: "d" };
 
+var INT_MAX = 9007199254740992;
+
 function salt() {
-  return _.random(0, Number.MAX_VALUE - 1);
+  return _.random(0, INT_MAX - 1);
 }
 
 var Remutable = (function () {
@@ -37,11 +39,11 @@ var Remutable = (function () {
   };
 
   Remutable.prototype.set = function (key, val) {
-    this._mutations[key] = { d: MUTATIONS.SET, v: val };
+    this._mutations[key] = { m: MUTATIONS.SET, v: val };
   };
 
   Remutable.prototype.del = function (key) {
-    this._mutations[key] = { d: MUTATIONS.DEL };
+    this._mutations[key] = { m: MUTATIONS.DEL };
   };
 
   Remutable.prototype.keys = function () {
@@ -79,11 +81,11 @@ var Remutable = (function () {
 
   Remutable.prototype.commit = function () {
     return this._applyPatchWithoutCheckingMutations({
-      mutations: this._mutations,
-      version: this._version,
-      hash: this._hash,
-      nextVersion: this._version + 1,
-      nextHash: salt() });
+      m: this._mutations,
+      v: this._version,
+      h: this._hash,
+      nv: this._version + 1,
+      nh: salt() });
   };
 
   Remutable.prototype.equals = function (remutable) {
@@ -97,20 +99,20 @@ var Remutable = (function () {
   };
 
   Remutable.prototype.canApply = function (patch) {
-    var hash = patch.hash;
-    var version = patch.version;
+    var hash = patch.h;
+    var version = patch.v;
     return (this._hash === hash && this._version === version);
   };
 
   Remutable.prototype._applyPatchWithoutCheckingMutations = function (patch) {
     var _this3 = this;
-    var mutations = patch.mutations;
-    var nextVersion = patch.nextVersion;
-    var nextHash = patch.nextHash;
+    var mutations = patch.m;
+    var nextVersion = patch.nv;
+    var nextHash = patch.nh;
     this.canApply(patch).should.be.ok;
     Object.keys(mutations).forEach(function (key) {
-      var m = _this3._mutations[key].m;
-      var v = _this3._mutations[key].v;
+      var m = mutations[key].m;
+      var v = mutations[key].v;
       if (m === MUTATIONS.DEL) {
         delete _this3._data[key];
       }
@@ -131,24 +133,24 @@ var Remutable = (function () {
 
   Remutable.prototype.serialize = function () {
     return JSON.stringify({
-      hash: this._hash,
-      version: this._version,
-      data: this._data });
+      h: this._hash,
+      v: this._version,
+      d: this._data });
   };
 
   Remutable.unserialize = function (serialized) {
     var _ref = JSON.parse(serialized);
 
-    var hash = _ref.hash;
-    var version = _ref.version;
-    var data = _ref.data;
+    var h = _ref.h;
+    var v = _ref.v;
+    var d = _ref.d;
     _.dev(function () {
-      return hash.should.be.a.Number && version.should.be.a.Number && data.should.be.an.Object;
+      return h.should.be.a.Number && v.should.be.a.Number && d.should.be.an.Object;
     });
     var remutable = new Remutable();
-    remutable._hash = hash;
-    remutable._version = version;
-    remutable._data = data;
+    remutable._hash = h;
+    remutable._version = v;
+    remutable._data = d;
     return remutable;
   };
 
