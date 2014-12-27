@@ -10,106 +10,107 @@ Implementation is extremely straightforward.
 Example
 =======
 ```js
-function l() { console.log.apply(console, arguments); }
+const robert = 'Robert Heinlein';
+const isaac = 'Isaac Asimov';
+const dan = 'Dan Simmons';
 
-var u1 = { id: 1, name: 'Robert Heinlein' };
-var u2 = { id: 2, name: 'Isaac Asimov' };
-var u3 = { id: 3, name: 'Dan Simmons' };
-
-var userList = new Remutable();
-l(userList.hash); // '60ba4b2daa4ed4d070fec06687e249e0e6f9ee45'
-userList.set(u1.id, u1.name);
-userList.set(u2.id, u2.name);
+const userList = new Remutable();
+userList.hash.should.be.exactly('60ba4b2daa4ed4d070fec06687e249e0e6f9ee45');
+userList.set('1', robert);
+userList.set('2', isaac);
+(userList.head.get('1') === void 0).should.be.ok;
+userList.working.get('1').should.be.exactly(robert);
 userList.commit();
-var str = userList.serialize();
-l(str); // '{"h":"87a149821b29aac81a0fda55ff1de4fde2ba4659","v":1,"d":{"1":"Robert Heinlein","2":"Isaac Asimov"}}'
-var userListCopy = Remutable.unserialize(str);
-l(userList.hash); // '87a149821b29aac81a0fda55ff1de4fde2ba4659'
-l(userListCopy.hash); // '87a149821b29aac81a0fda55ff1de4fde2ba4659'
-l(userList.get(u1.id)); // 'Robert Heinlein'
-l(userListCopy.get(u1.id)); // 'Robert Heinlein'
-userList.set(u1.id, u3.name);
-var patch = userList.commit();
-var reverse = patch.reverse();
-l(patch.serialize()); // '{"m":{"1":{"f":"Robert Heinlein","t":"Dan Simmons"}},"f":{"h":"87a149821b29aac81a0fda55ff1de4fde2ba4659","v":1},"t":{"h":"4b550dbd372828c61d38073b617c31cc2c75c936","v":2}}'
-l(reverse.serialize()); // '{"m":{"1":{"f":"Dan Simmons","t":"Robert Heinlein"}},"f":{"h":"4b550dbd372828c61d38073b617c31cc2c75c936","v":2},"t":{"h":"56e9e0dabe35ca2ff574d1fd4efe41eb67e209f4","v":3}}'
+userList.head.get('1').should.be.exactly(robert);
+userList.head.get('2').should.be.exactly(isaac);
+const json = userList.toJSON();
+json.should.be.exactly('{"h":"87a149821b29aac81a0fda55ff1de4fde2ba4659","v":1,"d":{"1":"Robert Heinlein","2":"Isaac Asimov"}}');
+const userListCopy = Remutable.fromJSON(json);
+userListCopy.toJSON().should.be.exactly(json);
+userListCopy.head.size.should.be.exactly(2);
+userList.set('3', dan);
+const patch = userList.commit();
+const revert = Patch.revert(patch);
 userListCopy.apply(patch);
-l(userListCopy.get(u1.id)); // 'Dan Simmons'
-userListCopy.apply(reverse);
-l(userListCopy.get(u1.id)); // 'Robert Heinlein'
+userListCopy.head.get('3').should.be.exactly(dan);
+userListCopy.set('3', isaac);
+userListCopy.working.get('3').should.be.exactly(isaac);
+userListCopy.rollback();
+userListCopy.working.get('3').should.be.exactly(dan);
+userListCopy.apply(revert);
+userListCopy.head.has('3').should.be.exactly(false);
+userListCopy.head.contains(dan).should.be.exactly(false);
+userListCopy.head.contains(isaac).should.be.exactly(true);
+
 ```
 
 
 API
 ===
 
-`new Remutable()`
+`new Remutable(): new Remutable`
 
 Creates a new Remutable object instance.
 
-`r.set(key, value)`
+`r.set(key: string, value: any): Remutable`
 
-`r.get(key)`
+`r.get(key): any`
 
-`r.del(key)`
+`r.delete(key): Remutable`
 
+Get/set/delete value in the underlying map. Only `string` keys are allowed. `value` should be JSON-stringifyiable.
+After a `.set`/`.delete`, `.get` will return the cached, modified value.
+`.set` with `value === undefined` is equivalent to `.delete`.
 
-Getter/setter/deleter.
-After a `.set`/`.del`, `.get` will return the cached, modified value.
-`.set` with `value === undefined` is equivalent to `.del`.
+`get r.head: Immutable.Map`
 
-`r.check(key)`
-Return the value at `key` from the last commit (even if it was mutated in between).
+Returns an Immutable.Map which represents the state after the last commit.
+You can use all the methods of Immutable.Map, such as `r.head.map`, `r.head.contains`, etc.
 
-`r.keys()`
+`get r.working: Immutable.Map`
 
-Returns the list of keys in the remutable object, including new keys defined by `.set` and not including keys undefined by `.del` in the current mutations stack.
+Returns an Immutable.Map which represents the cached, up-to-date state, including any mutations since the last commit.
+You can use all the methods of Immutable.Map, such as `r.working.map`, `r.working.contains`, etc.
 
-`r.map(fn)`
+`get r.hash: String`
 
-Map `fn` to all `(value, key)` couples in the remutable object, using `this.keys()` semantics.
+Returns a string hash of the remutable object, so that `r1.hash === r2.hash` implies that `r1` and `r2` are identical.
 
 `r.commit(): new Patch`
 
 Flush the current mutations and returns a patch object.
-After a commit, memory from the previous commit is lost and you can not rollback.
+After a commit, memory from the previous commit is lost and you can not rollback unless you explicitly store and revert the patch object.
 
-`r.rollback()`
+`r.rollback(): Remutable`
 
 Cancel all the non-commited mutations.
 
-`r.canApply(patch)`
+`r.match(patch: Patch)`
 
-Checks whether the given patch can be applied to the current remutable (internal ObjectID and version match).
+Checks whether the given patch can be applied to the current remutable.
 
-`r.apply(patch)`
+`r.apply(patch: Patch)`
 
 Checks that the patch is a fast-forward from the current object version (or throws) and applies the patch efficiently.
 
-`r.serialize(): serialized`
+`r.toJSON(): string`
 
-`Remutable.unserialize(serialized): new Remutable`
+Returns a compact JSON string representing the remutable instance. Can then be passed to `Remutable.fromJSON()`.
 
-Returns a string representation of `r`/constructs a Remutable object from a serialized string representation.
+`Remutable.fromJSON(json: String): new Remutable`
 
-`r1.equals(r2): boolean`
+Reconstructs a fresh Remutable instance from a JSON string representation.
+It is guaranteed that `Remutable.fromJSON(r.toString()).head.is(r.head) === true`.
 
-Instantly verifies if `r1` is `r2`.
-Note that `r1` and `r2` may wrap the same keys/values but not be equal, if they have diverged at some point.
-You may implement your own deep check, but as it is probably not relevant in most cases, I don't provide an implementation.
+`patch.toJSON(): string`
 
-`r.uid`
-Expose a string representation of the unique id of the remutable object and its current state, so that `r1.uid === r2.uid` is equivalent to `r1.equals(r2)` (though slower).
+Returns a compact JSON string representing the patch instance. Can then be passed to `Remutable.Patch.fromJSON()`.
 
-`r.dirty`
-Expose a boolean, indicating if there are pending, uncommited mutations.
+`Remutable.Patch.fromJSON(json): new Patch`
 
-`patch.serialize(): serialized`
+Reconstructs a fresh Patch instance from a JSON string representation.
 
-`Patch.unserialize(serialize): new Patch`
+`Remutable.Patch.revert(patch: Patch): new Patch`
 
-Return a string representation of `patch`/constructs a patch object from a serialized string representation.
-
-`patch.reverse(): new Patch`
-
-Creates a new patch object which reverse all the mutations from the patch. Useful to implement undo/redo semantics.
+Creates a new Patch instance which does the exact reverse mutations that `patch` does.
+Useful to implement undo/redo mechanisms.

@@ -1,166 +1,141 @@
 const _ = require('lodash-next');
 const sha1 = require('sha1');
 const sigmund = require('sigmund');
+const Immutable = require('immutable');
 
 const Patch = require('./Patch');
 
 class Remutable {
-  constructor() {
-    this._data = {};
-    this._mutations = {};
-    this._version = 0;
-    this._hash = sha1(sigmund({}));
-    this._dirty = false;
-    this._serialized = {
-      h: this._hash,
-      v: this._version,
-      s: JSON.stringify({ h: this._hash, v: this._version, d: this._data }),
-    };
-  }
+  constructor(data = {}, version = 0, hash = null) {
+    hash = hash || sha1(sigmund(data));
 
-  get dirty() {
-    return !!this._dirty;
+    _.dev(() => data.should.be.an.Object &&
+      version.should.be.a.Number &&
+      hash.should.be.a.String
+    );
+
+    this._head = Immutable.Map(data);
+    this._working = this._head;
+
+    this._version = version;
+    this._hash = hash;
+    this._dirty = false;
+    this._mutations = {};
+    this._serialized = {
+      hash: {}, // Never match ===
+      json: null,
+    };
   }
 
   get hash() {
     return this._hash;
   }
 
-  get uid() {
-    return `${this._hash}:${this._version}`;
+  get head() {
+    return this._head;
+  }
+
+  get working() {
+    return this._working;
+  }
+
+  toJSON() {
+    if(this._serialized.hash !== this._hash) {
+      this._serialized = {
+        hash: this._hash,
+        json: JSON.stringify({
+          h: this._hash,
+          v: this._version,
+          d: this._head.toObject()
+        }),
+      };
+    }
+    return this._serialized.json;
   }
 
   get(key) {
-    if(this._mutations[key] !== void 0) {
-      return this._mutations[key].t;
-    }
-    return this._data[key];
-  }
-
-  check(key) {
-    return this._data[key];
+    return this._working.get(key);
   }
 
   set(key, val) {
+    key.should.be.a.String;
     this._dirty = true;
     // Retain the previous value to make the patch reversible
-    const f = this._data[key];
+    const f = this._head.get(key);
     const t = val;
     this._mutations[key] = { f, t };
+    if(val === void 0) {
+      this._working = this._working.delete(key);
+    }
+    else {
+      this._working = this._working.set(key, val);
+    }
     return this;
   }
 
-  del(key) {
+  delete(key) {
     return this.set(key, void 0);
   }
 
-  checkout(key) {
-    return this._data[key];
-  }
-
-  keys() {
-    const mutations = {};
-    Object.keys(this._data).forEach((key) => mutations[key] = true);
-    Object.keys(this._mutations).forEach((key) => {
-      const { f, t } = this._mutations[t];
-      if(t === void 0 && f !== void 0) {
-        delete mutations[key];
-      }
-      else {
-        mutations[key] = true;
-      }
-    });
-    return Object.keys(mutations);
-  }
-
-  map(fn) { // fn(value, key): any
-    return this.keys().map((key) => fn(this.get(key), key));
-  }
-
-  destroy() {
-    this._mutations = null;
-    this._data = null;
-    this._version = {}; // === {} will always be falsy unless referentially equal
-    this._hash = {}; // === {} will always be falsy unless rerefentially equal
-  }
-
   commit() {
-    this.dirty.should.be.ok;
-    const patch = Patch.create({
+    this._dirty.should.be.ok;
+    const patch = Patch.fromMutations({
       mutations: this._mutations,
       hash: this._hash,
       version: this._version,
     });
+    this._head = this._working;
     this._mutations = {};
     this._dirty = false;
-    this.apply(patch);
+    this._hash = patch.to.h;
+    this._version = patch.to.v;
     return patch;
   }
 
-  equals(otherRemutable) {
-    _.dev(() => otherRemutable.should.be.an.instanceOf(Remutable));
-    this.dirty.should.not.be.ok;
-    otherRemutable.dirty.should.not.be.ok;
-    return this._hash === otherRemutable._hash;
-  }
-
   rollback() {
+    this._working = this._head;
     this._mutations = {};
     this._dirty = false;
   }
 
-  canApply(patch) {
+  match(patch) {
     _.dev(() => patch.should.be.an.instanceOf(Patch));
     return (this._hash === patch.from.h);
   }
 
   apply(patch) {
-    this.dirty.should.not.be.ok;
-    this.canApply(patch).should.be.ok;
-    Object.keys(patch.mutations).forEach((key) => {
-      const { t } = patch.mutations[key];
-      if(t === void 0) {
-        delete this._data[key];
-      }
-      else {
-        this._data[key] = t;
-      }
+    this._dirty.should.not.be.ok;
+    this.match(patch).should.be.ok;
+    const head = this._head.withMutations((map) => {
+      Object.keys(patch.mutations).forEach((key) => {
+        const { t } = patch.mutations[key];
+        if(t === void 0) {
+          map = map.delete(key);
+        }
+        else {
+          map = map.set(key, t);
+        }
+      });
+      return map;
     });
+    this._working = this._head = head;
     this._hash = patch.to.h;
     this._version = patch.to.v;
     return this;
   }
 
-  serialize() {
-    if(this._serialized.h !== this._hash || this._serialized.v !== this._version) {
-      this._serialized = {
-        h: this._hash,
-        v: this._version,
-        s: JSON.stringify({ h: this._hash, v: this._version, d: this._data }),
-      };
-    }
-    return this._serialized.s;
-  }
-
-  static unserialize(serialized) {
-    const { h, v, d } = JSON.parse(serialized);
-    _.dev(() => h.should.be.a.String &&
-      v.should.be.a.Number &&
-      d.should.be.an.Object
-    );
-    return _.extend(new Remutable(), {
-      _hash: h,
-      _version: v,
-      _data: d,
-    });
+  static fromJSON(json) {
+    const { h, v, d } = JSON.parse(json);
+    return new Remutable(d, v, h);
   }
 }
 
 _.extend(Remutable.prototype, {
-  _data: null,
+  _head: null,
+  _working: null,
   _mutations: null,
-  _version: null,
   _hash: null,
+  _version: null,
   _dirty: null,
 });
 

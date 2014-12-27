@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "6to5": "^1.15.0",
+    "immutable": "^3.4.1",
     "lodash-next": "^1.12.0",
     "sha1": "^1.1.0",
     "sigmund": "^1.0.0"

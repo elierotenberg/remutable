@@ -4,32 +4,43 @@ const sigmund = require('sigmund');
 
 class Patch {
   constructor({ mutations, from, to }) {
-    _.extend(this, { mutations, from, to });
-  }
-
-  serialize() {
-    const { mutations, from, to } = this;
-    return JSON.stringify({
-      m: mutations,
-      f: from,
-      t: to,
+    _.dev(() => mutations.should.be.an.Object &&
+      from.should.be.an.Object &&
+      from.h.should.be.a.String &&
+      from.v.should.be.a.Number &&
+      to.should.be.an.Object &&
+      to.h.should.be.a.String &&
+      to.v.should.be.a.Number
+    );
+    _.extend(this, {
+      mutations,
+      from,
+      to,
     });
+    this._serialized = null;
   }
 
-  get hash() {
-    return `${this.from.hash}:${this.to.hash}`;
+  toJSON() {
+    if(this._serialized === null) {
+      this._serialized = JSON.stringify({
+        m: this.mutations,
+        f: this.from,
+        t: this.to,
+      });
+    }
+    return this._serialized;
   }
 
-  reverse() {
+  static revert(patch) {
     const mutations = {};
-    Object.keys(this.mutations).forEach((key) => {
-      const { f, t } = this.mutations[key];
+    Object.keys(patch.mutations).forEach((key) => {
+      const { f, t } = patch.mutations[key];
       mutations[key] = { f: t, t: f };
     });
-    return Patch.create({ mutations, hash: this.to.h, version: this.to.v });
+    return Patch.fromMutations({ mutations, hash: patch.to.h, version: patch.to.v });
   }
 
-  static create({ mutations, hash, version }) {
+  static fromMutations({ mutations, hash, version }) {
     const from = { h: hash, v: version };
     // New hash is calculated so that if two identical remutables are updated
     // using structurally equal mutations, then they will get the same hash.
@@ -37,8 +48,8 @@ class Patch {
     return new Patch({ mutations, from, to });
   }
 
-  static unserialize(str) {
-    const { m, f, t } = JSON.parse(str);
+  static fromJSON(json) {
+    const { m, f, t } = JSON.parse(json);
     return new Patch({ mutations: m, from: f, to: t });
   }
 }
