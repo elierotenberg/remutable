@@ -1,8 +1,5 @@
 var Remutable = require('../');
-function l() {
-  console.log.apply(console, arguments);
-}
-
+var l = console.log.bind(console);
 var u1 = { id: 1, name: 'Robert Heinlein' };
 var u2 = { id: 2, name: 'Isaac Asimov' };
 var u3 = { id: 3, name: 'Dan Simmons' };
