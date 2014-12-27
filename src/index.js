@@ -1,75 +1,100 @@
 const _ = require('lodash-next');
+const sha1 = require('sha1');
+const sigmund = require('sigmund');
 
-const MUTATIONS = {
-  SET: 's',
-  DEL: 'd',
-};
+class Patch {
+  constructor({ m, f, t }) {
+    _.extend(this, { m, f, t });
+  }
 
-const INT_MAX = 9007199254740992;
+  serialize() {
+    const { m, f, t } = this;
+    return JSON.stringify({ m, f, t });
+  }
 
-function salt() {
-  return _.random(0, INT_MAX - 1);
+  reverse() {
+    const m = {};
+    Object.keys(this.m).forEach((k) => {
+      const { f, t } = this.m[k];
+      m[k] = { f: t, t: f };
+    });
+    const { h, v } = this.t;
+    return Patch.create({ m, h, v });
+  }
+
+  static create({ m, h, v }) {
+    const f = { h, v };
+    const t = { h: sha1(h + sigmund(m)), v: v + 1 };
+    return new Patch({ m, f, t });
+  }
+
+  static unserialize(str) {
+    const { m, f, t } = JSON.parse(str);
+    return new Patch({ m, f, t });
+  }
 }
 
 class Remutable {
   constructor() {
-    this._data = {};
-    this._mutations = {};
-    this._version = 0;
-    this._hash = salt();
-    this._dirty = false;
-  }
-
-  get uid() {
-    return `${this._hash}:${this._version}`;
+    this._d = {};                 // data
+    this._m = {};                 // mutations
+    this._v = 0;                  // version
+    this._h = sha1(sigmund({}));  // hash
+    this._x = false;              // dirty
   }
 
   get dirty() {
-    return this._dirty;
+    return !!this._x;
   }
 
-  get(key) {
-    if(this._mutations[key] !== void 0) {
-      const { m, v } = this._mutations[key];
-      if(m === MUTATIONS.DEL) {
-        return void 0;
-      }
-      if(m === MUTATIONS.SET) {
-        return v;
-      }
+  get hash() {
+    return this._h;
+  }
+
+  get uid() {
+    return `${this._h}:${this._v}`;
+  }
+
+  get(k) {
+    if(this._m[k] !== void 0) {
+      return this._m[k].t;
     }
-    return this._data[key];
+    return this._d[k];
+  }
+
+  check(k) {
+    return this._d[k];
+  }
+
+  set(k, v) {
+    this._x = true;
+    const f = this._d[k];
+    const t = v;
+    this._m[k] = { f, t };
+    return this;
+  }
+
+  del(k) {
+    return this.set(k, void 0);
   }
 
   checkout(key) {
-    return this._data[key];
-  }
-
-  set(key, val) {
-    this._dirty = true;
-    this._mutations[key] = { m: MUTATIONS.SET, v: val };
-  }
-
-  del(key) {
-    this._dirty = true;
-    this._mutations[key] = { m: MUTATIONS.DEL };
+    return this._d[key];
   }
 
   keys() {
-    let keysMap = {};
-    Object.keys(this._data).forEach((key) => {
-      keysMap[key] = true;
-    });
-    Object.keys(this._mutations).forEach((key) => {
-      const { m } = this._mutations[key];
-      if(m === MUTATIONS.SET) {
-        keysMap[key] = true;
+    const m = {};
+    Object.keys(this._d).forEach((k) => m[k] = true);
+    Object.keys(this._m).forEach((k) => {
+      const { f, t } = this._m[t];
+      if(t === void 0 && f !== void 0) {
+        delete m[k];
       }
-      if(m === MUTATIONS.DEL) {
-        delete keysMap[key];
+      else {
+        m[k] = true;
       }
     });
-    return Object.keys(keysMap);
+    return Object.keys(m);
   }
 
   map(fn) { // fn(value, key): any
@@ -77,95 +102,84 @@ class Remutable {
   }
 
   destroy() {
-    this._mutations = null;
-    this._data = null;
-    this._version = {}; // === this._version will always be falsy
-    this._hash = {}; // === this._hash will always be falsy
+    this._m = null;
+    this._d = null;
+    this._v = {}; // === {} will always be falsy unless referentially equal
+    this._h = {}; // === {} will always be falsy unless rerefentially equal
   }
 
   commit() {
     this.dirty.should.be.ok;
-    return this._applyPatchWithoutDirtyChecking({
-      m: this._mutations,
-      v: this._version,
-      h: this._hash,
-      nv: this._version + 1,
-      nh: salt(),
-    });
+    const patch = Patch.create({ m: this._m, h: this._h, v: this._v });
+    this._m = {};
+    this._x = false;
+    this.apply(patch);
+    return patch;
   }
 
-  equals(remutable) {
+  equals(r) {
+    _.dev(() => r.should.be.an.instanceOf(Remutable));
     this.dirty.should.not.be.ok;
-    remutable.dirty.should.not.be.ok;
-    return this._hash === remutable._hash && this._version === remutable._version;
+    r.dirty.should.not.be.ok;
+    return this._h === r._h;
   }
 
   rollback() {
-    this._mutations = {};
-    this._dirty = false;
+    this._m = {};
+    this._x = false;
   }
 
   canApply(patch) {
-    const hash = patch.h;
-    const version = patch.v;
-    return (this._hash === hash && this._version === version);
-  }
-
-  _applyPatchWithoutDirtyChecking(patch) {
-    const mutations = patch.m;
-    const nextVersion = patch.nv;
-    const nextHash = patch.nh;
-    this.canApply(patch).should.be.ok;
-    Object.keys(mutations).forEach((key) => {
-      const { m, v } = mutations[key];
-      if(m === MUTATIONS.DEL) {
-        delete this._data[key];
-      }
-      if(m === MUTATIONS.SET) {
-        this._data[key] = v;
-      }
-    });
-    this._version = nextVersion;
-    this._hash = nextHash;
-    this._mutations = {};
-    this._dirty = false;
-    return patch;
+    _.dev(() => patch.should.be.an.instanceOf(Patch));
+    return (this._h === patch.f.h);
   }
 
   apply(patch) {
     this.dirty.should.not.be.ok;
-    return this._applyPatchWithoutDirtyChecking(patch);
+    this.canApply(patch).should.be.ok;
+    Object.keys(patch.m).forEach((k) => {
+      const { t } = patch.m[k];
+      if(t === void 0) {
+        delete this._d[k];
+      }
+      else {
+        this._d[k] = t;
+      }
+    });
+    this._h = patch.t.h;
+    this._v = patch.t.v;
+    return this;
   }
 
   serialize() {
     this.dirty.should.not.be.ok;
     return JSON.stringify({
-      h: this._hash,
-      v: this._version,
-      d: this._data,
+      h: this._h,
+      v: this._v,
+      d: this._d,
     });
   }
 
   static unserialize(serialized) {
     const { h, v, d } = JSON.parse(serialized);
-    _.dev(() => h.should.be.a.Number &&
+    _.dev(() => h.should.be.a.String &&
       v.should.be.a.Number &&
       d.should.be.an.Object
     );
-    const remutable = new Remutable();
-    remutable._hash = h;
-    remutable._version = v;
-    remutable._data = d;
-    return remutable;
+    return _.extend(new Remutable(), {
+      _h: h,
+      _v: v,
+      _d: d,
+    });
   }
 }
 
 _.extend(Remutable.prototype, {
-  _data: null,
-  _mutations: null,
-  _version: null,
-  _hash: null,
-  _dirty: null,
+  _d: null,
+  _m: null,
+  _v: null,
+  _h: null,
+  _x: null,
 });
 
 module.exports = Remutable;

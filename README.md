@@ -10,34 +10,33 @@ Implementation is extremely straightforward.
 Example
 =======
 ```js
-var Remutable = require('remutable');
-var user1 = { id: 1325325, name: 'Isaac Asimov' };
-var user2 = { id: 5128581, name: 'Robert Heinlein' };
+function l() { console.log.apply(console, arguments); }
+
+var u1 = { id: 1, name: 'Robert Heinlein' };
+var u2 = { id: 2, name: 'Isaac Asimov' };
+var u3 = { id: 3, name: 'Dan Simmons' };
+
 var userList = new Remutable();
-console.log(userList.serialize());
-userList.set(user1.id, user1);
-userList.set(user2.id, user2);
-console.log(JSON.stringify(userList.commit())); // patch string
+l(userList.hash); // '60ba4b2daa4ed4d070fec06687e249e0e6f9ee45'
+userList.set(u1.id, u1.name);
+userList.set(u2.id, u2.name);
+userList.commit();
 var str = userList.serialize();
-console.log(str);
-var remoteUserList = Remutable.unserialize(str);
-remoteUserList.equals(userList); // true
-remoteUserList.map(function(user) {
-  console.log(user.name);
-}); // 'Isaac Asimov' 'Robert Heinlein'
-userList.del(user1.id);
-userList.get(user1.id); // undefined
+l(str); // '{"h":"87a149821b29aac81a0fda55ff1de4fde2ba4659","v":1,"d":{"1":"Robert Heinlein","2":"Isaac Asimov"}}'
+var userListCopy = Remutable.unserialize(str);
+l(userList.hash); // '87a149821b29aac81a0fda55ff1de4fde2ba4659'
+l(userListCopy.hash); // '87a149821b29aac81a0fda55ff1de4fde2ba4659'
+l(userList.get(u1.id)); // 'Robert Heinlein'
+l(userListCopy.get(u1.id)); // 'Robert Heinlein'
+userList.set(u1.id, u3.name);
 var patch = userList.commit();
-remoteUserList.equals(userList); // false
-remoteUserList.canApply(patch); // true
-remoteUserList.apply(patch);
-remoteUserList.map(function(user) {
-  console.log(user.name);
-}); // 'Robert Heinlein'
-remoteUserList.set(user1.id, user2);
-remoteUserList.get(user1.id); // { id: 5128581, name: 'Robert Heinlein' }
-remoteUserList.rollback();
-console.log(remoteUserList.get(user1.id)); // undefined
+var reverse = patch.reverse();
+l(patch.serialize()); // '{"m":{"1":{"f":"Robert Heinlein","t":"Dan Simmons"}},"f":{"h":"87a149821b29aac81a0fda55ff1de4fde2ba4659","v":1},"t":{"h":"4b550dbd372828c61d38073b617c31cc2c75c936","v":2}}'
+l(reverse.serialize()); // '{"m":{"1":{"f":"Dan Simmons","t":"Robert Heinlein"}},"f":{"h":"4b550dbd372828c61d38073b617c31cc2c75c936","v":2},"t":{"h":"56e9e0dabe35ca2ff574d1fd4efe41eb67e209f4","v":3}}'
+userListCopy.apply(patch);
+l(userListCopy.get(u1.id)); // 'Dan Simmons'
+userListCopy.apply(reverse);
+l(userListCopy.get(u1.id)); // 'Robert Heinlein'
 ```
 
 
@@ -49,13 +48,17 @@ API
 Creates a new Remutable object instance.
 
 `r.set(key, value)`
-`r.get(key, value)`
+
+`r.get(key)`
+
 `r.del(key)`
+
 
 Getter/setter/deleter.
 After a `.set`/`.del`, `.get` will return the cached, modified value.
+`.set` with `value === undefined` is equivalent to `.del`.
 
-`r.checkout(key)`
+`r.check(key)`
 Return the value at `key` from the last commit (even if it was mutated in between).
 
 `r.keys()`
@@ -66,7 +69,7 @@ Returns the list of keys in the remutable object, including new keys defined by 
 
 Map `fn` to all `(value, key)` couples in the remutable object, using `this.keys()` semantics.
 
-`r.commit(): patch`
+`r.commit(): new Patch`
 
 Flush the current mutations and returns a patch object.
 After a commit, memory from the previous commit is lost and you can not rollback.
@@ -84,6 +87,7 @@ Checks whether the given patch can be applied to the current remutable (internal
 Checks that the patch is a fast-forward from the current object version (or throws) and applies the patch efficiently.
 
 `r.serialize(): serialized`
+
 `Remutable.unserialize(serialized): new Remutable`
 
 Returns a string representation of `r`/constructs a Remutable object from a serialized string representation.
@@ -99,3 +103,13 @@ Expose a string representation of the unique id of the remutable object and its 
 
 `r.dirty`
 Expose a boolean, indicating if there are pending, uncommited mutations.
+
+`patch.serialize(): serialized`
+
+`Patch.unserialize(serialize): new Patch`
+
+Return a string representation of `patch`/constructs a patch object from a serialized string representation.
+
+`patch.reverse(): new Patch`
+
+Creates a new patch object which reverse all the mutations from the patch. Useful to implement undo/redo semantics.
