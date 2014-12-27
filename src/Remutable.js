@@ -27,6 +27,10 @@ class Remutable {
     };
   }
 
+  get dirty() {
+    return this._dirty;
+  }
+
   get hash() {
     return this._hash;
   }

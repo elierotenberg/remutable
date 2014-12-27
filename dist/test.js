@@ -1,6 +1,6 @@
 "use strict";
 
-require("6to5/polyfill");var Promise = (global || window).Promise = require("lodash-next").Promise;var __DEV__ = (process.env.NODE_ENV !== "production");var __PROD__ = !__DEV__;var __BROWSER__ = (typeof window === "object");var __NODE__ = !__BROWSER__;var Remutable = require("../");
+require("6to5/polyfill");var Promise = (global || window).Promise = require("lodash-next").Promise;var __DEV__ = process.env.NODE_ENV !== "production";var __PROD__ = !__DEV__;var __BROWSER__ = typeof window === "object";var __NODE__ = !__BROWSER__;var Remutable = require("../");
 var Patch = Remutable.Patch;
 require("lodash-next");
 
@@ -10,7 +10,9 @@ var dan = "Dan Simmons";
 
 var userList = new Remutable();
 userList.hash.should.be.exactly("60ba4b2daa4ed4d070fec06687e249e0e6f9ee45");
+userList.dirty.should.not.be.ok;
 userList.set("1", robert);
+userList.dirty.should.be.ok;
 userList.set("2", isaac);
 (userList.head.get("1") === void 0).should.be.ok;
 userList.working.get("1").should.be.exactly(robert);

@@ -8,7 +8,9 @@ const dan = 'Dan Simmons';
 
 const userList = new Remutable();
 userList.hash.should.be.exactly('60ba4b2daa4ed4d070fec06687e249e0e6f9ee45');
+userList.dirty.should.not.be.ok;
 userList.set('1', robert);
+userList.dirty.should.be.ok;
 userList.set('2', isaac);
 (userList.head.get('1') === void 0).should.be.ok;
 userList.working.get('1').should.be.exactly(robert);
