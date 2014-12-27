@@ -31,6 +31,8 @@ class Patch {
 
   static create({ mutations, hash, version }) {
     const from = { h: hash, v: version };
+    // New hash is calculated so that if two identical remutables are updated
+    // using structurally equal mutations, then they will get the same hash.
     const to = { h: sha1(hash + sigmund(mutations)), v: version + 1 };
     return new Patch({ mutations, from, to });
   }

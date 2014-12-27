@@ -43,6 +43,7 @@ class Remutable {
 
   set(key, val) {
     this._dirty = true;
+    // Retain the previous value to make the patch reversible
     const f = this._data[key];
     const t = val;
     this._mutations[key] = { f, t };
