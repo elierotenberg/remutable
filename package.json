@@ -28,7 +28,7 @@
     "jshint-stylish": "^1.0.0"
   },
   "dependencies": {
-    "6to5": "^2.0.2",
+    "6to5": "^2.0.4",
     "immutable": "^3.4.1",
     "lodash-next": "^2.0.0",
     "sha1": "^1.1.0",
