@@ -5,6 +5,8 @@ require('lodash-next');
 const robert = 'Robert Heinlein';
 const isaac = 'Isaac Asimov';
 const dan = 'Dan Simmons';
+const bard = 'William Shakespeare';
+const manu = 'Emmanuel Kant';
 
 const userList = new Remutable();
 userList.hash.should.be.exactly('60ba4b2daa4ed4d070fec06687e249e0e6f9ee45');
@@ -36,4 +38,12 @@ userListCopy.head.has('3').should.be.exactly(false);
 userListCopy.head.contains(dan).should.be.exactly(false);
 userListCopy.head.contains(isaac).should.be.exactly(true);
 
-
+const userListCopy2 = Remutable.fromJSON(userList.toJSON());
+userList.set('4', bard);
+const patchA = userList.commit();
+userList.set('5', manu);
+const patchB = userList.commit();
+const patchC = Patch.combine(patchA, patchB);
+userListCopy2.apply(patchC);
+userListCopy2.head.contains(bard).should.be.exactly(true);
+userListCopy2.head.contains(manu).should.be.exactly(true);

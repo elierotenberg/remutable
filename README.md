@@ -13,10 +13,14 @@ Example
 const robert = 'Robert Heinlein';
 const isaac = 'Isaac Asimov';
 const dan = 'Dan Simmons';
+const bard = 'William Shakespeare';
+const manu = 'Emmanuel Kant';
 
 const userList = new Remutable();
 userList.hash.should.be.exactly('60ba4b2daa4ed4d070fec06687e249e0e6f9ee45');
+userList.dirty.should.not.be.ok;
 userList.set('1', robert);
+userList.dirty.should.be.ok;
 userList.set('2', isaac);
 (userList.head.get('1') === void 0).should.be.ok;
 userList.working.get('1').should.be.exactly(robert);
@@ -41,6 +45,16 @@ userListCopy.apply(revert);
 userListCopy.head.has('3').should.be.exactly(false);
 userListCopy.head.contains(dan).should.be.exactly(false);
 userListCopy.head.contains(isaac).should.be.exactly(true);
+
+const userListCopy2 = Remutable.fromJSON(userList.toJSON());
+userList.set('4', bard);
+const patchA = userList.commit();
+userList.set('5', manu);
+const patchB = userList.commit();
+const patchC = Patch.combine(patchA, patchB);
+userListCopy2.apply(patchC);
+userListCopy2.head.contains(bard).should.be.exactly(true);
+userListCopy2.head.contains(manu).should.be.exactly(true);
 
 ```
 
@@ -114,3 +128,8 @@ Reconstructs a fresh Patch instance from a JSON string representation.
 
 Creates a new Patch instance which does the exact reverse mutations that `patch` does.
 Useful to implement undo/redo mechanisms.
+
+`Remutable.Patch.combine(patchA: Patch, patchB: Patch): new Patch`
+
+Assuming that patchA's target is exactly patchB's source, creates a new Patch instance which maps patchA's source to patchB's target.
+Internal representation is optimized, so that there is no redundant information.

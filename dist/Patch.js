@@ -58,4 +58,16 @@ Patch.fromJSON = function (json) {
   return new Patch({ mutations: m, from: f, to: t });
 };
 
+Patch.combine = function (patchA, patchB) {
+  _.dev(function () {
+    return patchA.should.be.an.instanceOf(Patch) && patchB.should.be.an.instanceOf(Patch) &&
+    // One can only combine compatible patches
+    patchA.to.h.should.be.exactly(patchB.from.h);
+  });
+  return new Patch({
+    mutations: _.extend(_.clone(patchA.mutations), patchB.mutations),
+    from: _.clone(patchA.from),
+    to: _.clone(patchB.to) });
+};
+
 module.exports = Patch;
