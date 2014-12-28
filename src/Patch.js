@@ -20,6 +20,14 @@ class Patch {
     this._serialized = null;
   }
 
+  get source() {
+    return this.from.h;
+  }
+
+  get target() {
+    return this.to.h;
+  }
+
   toJSON() {
     if(this._serialized === null) {
       this._serialized = JSON.stringify({
@@ -57,7 +65,7 @@ class Patch {
     _.dev(() => patchA.should.be.an.instanceOf(Patch) &&
       patchB.should.be.an.instanceOf(Patch) &&
       // One can only combine compatible patches
-      patchA.to.h.should.be.exactly(patchB.from.h)
+      patchA.target.should.be.exactly(patchB.source)
     );
     return new Patch({
       mutations: _.extend(_.clone(patchA.mutations), patchB.mutations),

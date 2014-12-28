@@ -37,9 +37,9 @@ userList.head.get('1').should.be.exactly(robert);
 userList.head.get('2').should.be.exactly(isaac);
 
 // We can rollback changes that have no been committed yet
-userListCopy.set('3', dan);
-userListCopy.working.get('3').should.be.exactly(dan);
-userListCopy.rollback();
+userList.set('3', dan);
+userList.working.get('3').should.be.exactly(dan);
+userList.rollback();
 (userList.working.get('3') === void 0).should.be.ok;
 
 // Now we can serialize it to send it to the server via toJSON
@@ -72,9 +72,12 @@ const patchA = userList.commit();
 userList.set('5', manu);
 const patchB = userList.commit();
 const patchC = Patch.combine(patchA, patchB);
+patchC.source.should.be.exactly(patchA.source);
+patchC.target.should.be.exactly(patchC.target);
 userListCopy2.apply(patchC);
 userListCopy2.head.contains(bard).should.be.exactly(true);
 userListCopy2.head.contains(manu).should.be.exactly(true);
+
 
 ```
 
@@ -143,6 +146,13 @@ Returns a compact JSON string representing the patch instance. Can then be passe
 `Remutable.Patch.fromJSON(json): new Patch`
 
 Reconstructs a fresh Patch instance from a JSON string representation.
+
+`get patch.source: string`
+
+`get patch.target: string`
+
+Returns the underlying hash of the patch source/target, so that `p1.target === p2.target` implies that `p1` and `p2` are identical
+and `r.match(p)` is equivalent to `r.hash === p.source`.
 
 `Remutable.Patch.revert(patch: Patch): new Patch`
 

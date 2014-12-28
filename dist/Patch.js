@@ -1,5 +1,10 @@
 "use strict";
 
+var _prototypeProperties = function (child, staticProps, instanceProps) {
+  if (staticProps) Object.defineProperties(child, staticProps);
+  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
+};
+
 require("6to5/polyfill");var Promise = (global || window).Promise = require("lodash-next").Promise;var __DEV__ = process.env.NODE_ENV !== "production";var __PROD__ = !__DEV__;var __BROWSER__ = typeof window === "object";var __NODE__ = !__BROWSER__;var _ = require("lodash-next");
 var sha1 = require("sha1");
 var sigmund = require("sigmund");
@@ -62,12 +67,27 @@ Patch.combine = function (patchA, patchB) {
   _.dev(function () {
     return patchA.should.be.an.instanceOf(Patch) && patchB.should.be.an.instanceOf(Patch) &&
     // One can only combine compatible patches
-    patchA.to.h.should.be.exactly(patchB.from.h);
+    patchA.target.should.be.exactly(patchB.source);
   });
   return new Patch({
     mutations: _.extend(_.clone(patchA.mutations), patchB.mutations),
     from: _.clone(patchA.from),
     to: _.clone(patchB.to) });
 };
+
+_prototypeProperties(Patch, null, {
+  source: {
+    get: function () {
+      return this.from.h;
+    },
+    enumerable: true
+  },
+  target: {
+    get: function () {
+      return this.to.h;
+    },
+    enumerable: true
+  }
+});
 
 module.exports = Patch;
