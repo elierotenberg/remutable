@@ -6,7 +6,7 @@ var _prototypeProperties = function (child, staticProps, instanceProps) {
 };
 
 require("6to5/polyfill");var Promise = (global || window).Promise = require("lodash-next").Promise;var __DEV__ = process.env.NODE_ENV !== "production";var __PROD__ = !__DEV__;var __BROWSER__ = typeof window === "object";var __NODE__ = !__BROWSER__;var _ = require("lodash-next");
-var sha1 = require("sha1");
+var crc32 = require("crc-32").str;
 var sigmund = require("sigmund");
 var Immutable = require("immutable");
 
@@ -16,10 +16,11 @@ var Remutable = function Remutable(data, version, hash) {
   if (data === undefined) data = {};
   if (version === undefined) version = 0;
   if (hash === undefined) hash = null;
-  hash = hash || sha1(sigmund(data));
+  hash = hash || Remutable.hashFn(Remutable.signFn(data));
 
   _.dev(function () {
-    return data.should.be.an.Object && version.should.be.a.Number && hash.should.be.a.String;
+    data.should.be.an.Object;
+    version.should.be.a.Number;
   });
 
   this._head = Immutable.Map(data);
@@ -72,7 +73,7 @@ Remutable.prototype["delete"] = function (key) {
 
 Remutable.prototype.commit = function () {
   this._dirty.should.be.ok;
-  var patch = Patch.fromMutations({
+  var patch = Remutable.Patch.fromMutations({
     mutations: this._mutations,
     hash: this._hash,
     version: this._version });
@@ -92,7 +93,7 @@ Remutable.prototype.rollback = function () {
 
 Remutable.prototype.match = function (patch) {
   _.dev(function () {
-    return patch.should.be.an.instanceOf(Patch);
+    return patch.should.be.an.instanceOf(Remutable.Patch);
   });
   return this._hash === patch.from.h;
 };
@@ -161,6 +162,8 @@ _.extend(Remutable.prototype, {
   _version: null,
   _dirty: null });
 
-Remutable.Patch = Patch;
+Remutable.hashFn = crc32;
+Remutable.signFn = sigmund;
+Remutable.Patch = Patch(Remutable);
 
 module.exports = Remutable;

@@ -1,5 +1,5 @@
 const _ = require('lodash-next');
-const sha1 = require('sha1');
+const crc32 = require('crc-32').str;
 const sigmund = require('sigmund');
 const Immutable = require('immutable');
 
@@ -7,12 +7,12 @@ const Patch = require('./Patch');
 
 class Remutable {
   constructor(data = {}, version = 0, hash = null) {
-    hash = hash || sha1(sigmund(data));
+    hash = hash || Remutable.hashFn(Remutable.signFn(data));
 
-    _.dev(() => data.should.be.an.Object &&
-      version.should.be.a.Number &&
-      hash.should.be.a.String
-    );
+    _.dev(() => {
+      data.should.be.an.Object;
+      version.should.be.a.Number;
+    });
 
     this._head = Immutable.Map(data);
     this._working = this._head;
@@ -83,7 +83,7 @@ class Remutable {
 
   commit() {
     this._dirty.should.be.ok;
-    const patch = Patch.fromMutations({
+    const patch = Remutable.Patch.fromMutations({
       mutations: this._mutations,
       hash: this._hash,
       version: this._version,
@@ -103,7 +103,7 @@ class Remutable {
   }
 
   match(patch) {
-    _.dev(() => patch.should.be.an.instanceOf(Patch));
+    _.dev(() => patch.should.be.an.instanceOf(Remutable.Patch));
     return (this._hash === patch.from.h);
   }
 
@@ -143,6 +143,8 @@ _.extend(Remutable.prototype, {
   _dirty: null,
 });
 
-Remutable.Patch = Patch;
+Remutable.hashFn = crc32;
+Remutable.signFn = sigmund;
+Remutable.Patch = Patch(Remutable);
 
 module.exports = Remutable;

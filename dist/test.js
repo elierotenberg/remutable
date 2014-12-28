@@ -12,7 +12,7 @@ var manu = "Emmanuel Kant";
 
 // Let's create an empty Remutable object
 var userList = new Remutable();
-userList.hash.should.be.exactly("60ba4b2daa4ed4d070fec06687e249e0e6f9ee45");
+userList.hash.should.be.exactly(366298937);
 userList.dirty.should.not.be.ok;
 
 // And set two values
@@ -38,7 +38,7 @@ userList.rollback();
 
 // Now we can serialize it to send it to the server via toJSON
 var json = userList.toJSON();
-json.should.be.exactly("{\"h\":\"87a149821b29aac81a0fda55ff1de4fde2ba4659\",\"v\":1,\"d\":{\"1\":\"Robert Heinlein\",\"2\":\"Isaac Asimov\"}}");
+json.should.be.exactly("{\"h\":2045445329,\"v\":1,\"d\":{\"1\":\"Robert Heinlein\",\"2\":\"Isaac Asimov\"}}");
 
 // and read it back from the server via fromJSON
 var userListCopy = Remutable.fromJSON(json);
@@ -49,7 +49,11 @@ userListCopy.head.size.should.be.exactly(2);
 // we get a patch when doing a commit and apply it
 userList.set("3", dan);
 var patch = userList.commit();
-userListCopy.apply(patch);
+// We can transfer the patch in JSON form
+var jsonPatch = patch.toJSON();
+jsonPatch.should.be.exactly("{\"m\":{\"3\":{\"t\":\"Dan Simmons\"}},\"f\":{\"h\":2045445329,\"v\":1},\"t\":{\"h\":-195302221,\"v\":2}}");
+var patchCopy = Patch.fromJSON(jsonPatch);
+userListCopy.apply(patchCopy);
 userListCopy.head.get("3").should.be.exactly(dan);
 
 // It's possible to implement an undo stack by reverting patches
