@@ -144,7 +144,7 @@ Checks that the patch is a fast-forward from the current object version (or thro
 
 Add/remove a change listener. The change listener will be called with `(head, patch)` __synchronously__ on each commit/apply.
 
-This feature should be used with care, as it can induce infinite recursion if an change events results in a new change.
+This feature should be used with care, as it can induce infinite recursion if an change events results in a new change. Its intented use is to __propagate__ updates, typically in a one-way data flow.
 
 `r.toJSON(): string`
 
