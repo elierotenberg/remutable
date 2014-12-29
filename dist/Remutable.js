@@ -33,6 +33,18 @@ var Remutable = function Remutable(data, version, hash) {
   this._serialized = {
     hash: {}, // Never match ===
     json: null };
+  // 'No overhead by default'
+  this._onChangeListeners = null;
+};
+
+Remutable.prototype.destroy = function () {
+  // Explicitly nullify references
+  this._head = null;
+  this._working = null;
+  this._dirty = null;
+  this._mutations = null;
+  this._serialized = null;
+  this._onChangeListeners = null;
 };
 
 Remutable.prototype.toJSON = function () {
@@ -71,6 +83,40 @@ Remutable.prototype["delete"] = function (key) {
   return this.set(key, void 0);
 };
 
+Remutable.prototype.onChange = function (fn) {
+  _.dev(function () {
+    return fn.should.be.a.Function;
+  });
+  if (!this._onChangeListeners) {
+    this._onChangeListeners = {};
+  }
+  var id = _.uniqueId("l");
+  this._onChangeListeners[id] = fn;
+  return id;
+};
+
+Remutable.prototype.offChange = function (id) {
+  var _this = this;
+  _.dev(function () {
+    id.should.be.a.String;
+    (_this._onChangeListeners !== null).should.be.ok;
+    (_this._onChangeListeners[id] !== void 0).should.be.ok;
+  });
+  delete this._onChangeListeners[id];
+  if (_.size(this._onChangeListeners) === 0) {
+    this._onChangeListeners = null;
+  }
+};
+
+Remutable.prototype.callOnChangeListeners = function (patch) {
+  var _this2 = this;
+  if (this._onChangeListeners !== null) {
+    _.each(this._onChangeListeners, function (fn) {
+      return fn(_this2._head, patch);
+    });
+  }
+};
+
 Remutable.prototype.commit = function () {
   this._dirty.should.be.ok;
   var patch = Remutable.Patch.fromMutations({
@@ -82,6 +128,7 @@ Remutable.prototype.commit = function () {
   this._dirty = false;
   this._hash = patch.to.h;
   this._version = patch.to.v;
+  this.callOnChangeListeners(patch);
   return patch;
 };
 
@@ -115,6 +162,7 @@ Remutable.prototype.apply = function (patch) {
   this._working = this._head = _head;
   this._hash = patch.to.h;
   this._version = patch.to.v;
+  this.callOnChangeListeners(patch);
   return this;
 };
 
@@ -160,7 +208,8 @@ _.extend(Remutable.prototype, {
   _mutations: null,
   _hash: null,
   _version: null,
-  _dirty: null });
+  _dirty: null,
+  _onChangeListeners: null });
 
 Remutable.hashFn = crc32;
 Remutable.signFn = sigmund;

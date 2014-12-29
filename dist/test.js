@@ -53,8 +53,14 @@ var patch = userList.commit();
 var jsonPatch = patch.toJSON();
 jsonPatch.should.be.exactly("{\"m\":{\"3\":{\"t\":\"Dan Simmons\"}},\"f\":{\"h\":2045445329,\"v\":1},\"t\":{\"h\":-195302221,\"v\":2}}");
 var patchCopy = Patch.fromJSON(jsonPatch);
+// We can synchronously react to updates
+var onChange = userListCopy.onChange(function (head, patch) {
+  patch.should.be.exactly(patchCopy);
+  head.get("3").should.be.exactly(dan);
+});
 userListCopy.apply(patchCopy);
 userListCopy.head.get("3").should.be.exactly(dan);
+userListCopy.offChange(onChange);
 
 // It's possible to implement an undo stack by reverting patches
 var revert = Patch.revert(patch);
