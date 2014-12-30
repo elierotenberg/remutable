@@ -117,12 +117,12 @@ Remutable.prototype.callOnChangeListeners = function (patch) {
   }
 };
 
-Remutable.prototype.commit = function () {
+Remutable.prototype.commit = function (coerceTo) {
   this._dirty.should.be.ok;
   var patch = Remutable.Patch.fromMutations({
     mutations: this._mutations,
     hash: this._hash,
-    version: this._version });
+    version: this._version }, coerceTo);
   this._head = this._working;
   this._mutations = {};
   this._dirty = false;
@@ -185,6 +185,12 @@ _prototypeProperties(Remutable, null, {
   hash: {
     get: function () {
       return this._hash;
+    },
+    enumerable: true
+  },
+  version: {
+    get: function () {
+      return this._version;
     },
     enumerable: true
   },

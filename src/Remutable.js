@@ -37,6 +37,10 @@ class Remutable {
     return this._hash;
   }
 
+  get version() {
+    return this._version;
+  }
+
   get head() {
     return this._head;
   }
@@ -121,13 +125,13 @@ class Remutable {
     }
   }
 
-  commit() {
+  commit(coerceTo) {
     this._dirty.should.be.ok;
     const patch = Remutable.Patch.fromMutations({
       mutations: this._mutations,
       hash: this._hash,
       version: this._version,
-    });
+    }, coerceTo);
     this._head = this._working;
     this._mutations = {};
     this._dirty = false;

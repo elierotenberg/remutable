@@ -48,14 +48,14 @@ module.exports = function (Remutable) {
     return Patch.fromMutations({ mutations: mutations, hash: patch.to.h, version: patch.to.v });
   };
 
-  Patch.fromMutations = function (_ref2) {
+  Patch.fromMutations = function (_ref2, coerceTo) {
     var mutations = _ref2.mutations;
     var hash = _ref2.hash;
     var version = _ref2.version;
     var from = { h: hash, v: version };
     // New hash is calculated so that if two identical remutables are updated
     // using structurally equal mutations, then they will get the same hash.
-    var to = { h: Remutable.hashFn(hash + Remutable.signFn(mutations)), v: version + 1 };
+    var to = coerceTo || { h: Remutable.hashFn(hash + Remutable.signFn(mutations)), v: version + 1 };
     return new Patch({ mutations: mutations, from: from, to: to });
   };
 
@@ -79,6 +79,33 @@ module.exports = function (Remutable) {
       mutations: _.extend(_.clone(patchA.mutations), patchB.mutations),
       from: _.clone(patchA.from),
       to: _.clone(patchB.to) });
+  };
+
+  Patch.fromDiff = function (prev, next) {
+    _.dev(function () {
+      prev.should.be.an.instanceOf(Remutable);
+      next.should.be.an.instanceOf(Remutable);
+      prev.version.should.be.below(next.version);
+      prev.dirty.should.not.be.ok;
+      next.dirty.should.not.be.ok;
+    });
+    var from = {
+      h: prev.hash,
+      v: prev.version };
+    var to = {
+      h: next.hash,
+      v: next.version };
+    var mutations = {};
+    var diffKeys = {};
+    [prev, next].forEach(function (rem) {
+      return rem.head.forEach(function (val, key) {
+        return prev.head.get(key) !== next.head.get(key) ? diffKeys[key] = null : void 0;
+      });
+    });
+    Object.keys(diffKeys).forEach(function (key) {
+      return mutations[key] = { f: prev.head.get(key), t: next.head.get(key) };
+    });
+    return new Patch({ mutations: mutations, from: from, to: to });
   };
 
   _prototypeProperties(Patch, null, {

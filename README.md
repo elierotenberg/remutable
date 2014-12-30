@@ -87,6 +87,17 @@ patchC.target.should.be.exactly(patchC.target);
 userListCopy2.apply(patchC);
 userListCopy2.head.contains(bard).should.be.exactly(true);
 userListCopy2.head.contains(manu).should.be.exactly(true);
+
+// We make some changes without recording the patch objects
+userList.delete('5');
+userList.commit();
+userList.delete('4');
+userList.commit();
+// We can deep-diff and regenerate a new patch object
+// It is relatively slow and should be used with care.
+const diffPatch = Patch.fromDiff(userListCopy2, userList);
+userListCopy2.apply(diffPatch);
+userListCopy2.head.has('5').should.be.exactly(false);
 ```
 
 
@@ -180,6 +191,9 @@ Useful to implement undo/redo mechanisms.
 Assuming that patchA's target is exactly patchB's source, creates a new Patch instance which maps patchA's source to patchB's target.
 Internal representation is optimized, so that there is no redundant information.
 
+`Remutable.Patch.fromDiff(prev: Remutable, next: Remutable): new Patch`
+
+In some rare cases, you __known__ that `next` is a more recent version of `prev`, but don't have the underlying transition patches (for example, after a server full resync). `Patch#fromDiff` creates a new Patch object that reflects this transition: its source match `prev` and its target match `next`. Note however that this construction is relatively slow, as it requires to scan all the key/value pairs of both `prev` and `next`. Whenever possible, avoid deep diffing and maintain patches.
 
 Configuration
 =============
