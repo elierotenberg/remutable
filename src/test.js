@@ -1,6 +1,4 @@
 const Remutable = require('../');
-require('lodash-next');
-
 const { Patch } = Remutable;
 
 const robert = 'Robert Heinlein';

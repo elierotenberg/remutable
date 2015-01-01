@@ -1,9 +1,7 @@
-const _ = require('lodash-next');
-
 module.exports = function(Remutable) {
   class Patch {
     constructor({ mutations, from, to }) {
-      _.dev(() => {
+      if(__DEV__) {
         mutations.should.be.an.Object;
         from.should.be.an.Object;
         from.h.should.be.ok;
@@ -11,13 +9,15 @@ module.exports = function(Remutable) {
         to.should.be.an.Object;
         to.h.should.be.ok;
         to.v.should.be.a.Number;
-      });
+      }
       _.extend(this, {
         mutations,
         from,
         to,
       });
       this._serialized = null;
+
+      _.bindAll(this);
     }
 
     get source() {
@@ -62,12 +62,12 @@ module.exports = function(Remutable) {
     }
 
     static combine(patchA, patchB) {
-      _.dev(() => {
+      if(__DEV__) {
         patchA.should.be.an.instanceOf(Patch);
         patchB.should.be.an.instanceOf(Patch);
         // One can only combine compatible patches
         patchA.target.should.be.exactly(patchB.source);
-      });
+      }
       return new Patch({
         mutations: _.extend(_.clone(patchA.mutations), patchB.mutations),
         from: _.clone(patchA.from),
@@ -76,13 +76,13 @@ module.exports = function(Remutable) {
     }
 
     static fromDiff(prev, next) {
-      _.dev(() => {
+      if(__DEV__) {
         prev.should.be.an.instanceOf(Remutable);
         next.should.be.an.instanceOf(Remutable);
         prev.version.should.be.below(next.version);
         prev.dirty.should.not.be.ok;
         next.dirty.should.not.be.ok;
-      });
+      }
       const from = {
         h: prev.hash,
         v: prev.version,

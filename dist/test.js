@@ -1,8 +1,17 @@
 "use strict";
 
-require("6to5/polyfill");var Promise = (global || window).Promise = require("lodash-next").Promise;var __DEV__ = process.env.NODE_ENV !== "production";var __PROD__ = !__DEV__;var __BROWSER__ = typeof window === "object";var __NODE__ = !__BROWSER__;var Remutable = require("../");
-require("lodash-next");
-
+require("6to5/polyfill");
+var _ = require("lodash");
+var should = require("should");
+var Promise = (global || window).Promise = require("bluebird");
+var __DEV__ = process.env.NODE_ENV !== "production";
+var __PROD__ = !__DEV__;
+var __BROWSER__ = typeof window === "object";
+var __NODE__ = !__BROWSER__;
+if (__DEV__) {
+  Promise.longStackTraces();
+}
+var Remutable = require("../");
 var Patch = Remutable.Patch;
 
 

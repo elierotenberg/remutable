@@ -1,4 +1,3 @@
-const _ = require('lodash-next');
 const crc32 = require('crc-32').str;
 const sigmund = require('sigmund');
 const Immutable = require('immutable');
@@ -27,9 +26,12 @@ class Producer {
     if(__DEV__) {
       ctx.should.be.an.instanceOf(_Remutable);
     }
+    this._ctx = ctx;
     // proxy all these methods to ctx
     ['delete', 'rollback', 'commit', 'match']
     .forEach((m) => this[m] = ctx[m]);
+
+    _.bindAll(this);
   }
 
   set() {
@@ -46,10 +48,10 @@ class Remutable {
   constructor(data = {}, version = 0, hash = null) {
     hash = hash || Remutable.hashFn(Remutable.signFn(data));
 
-    _.dev(() => {
+    if(__DEV__) {
       data.should.be.an.Object;
       version.should.be.a.Number;
-    });
+    }
 
     this._head = Immutable.Map(data);
     this._working = this._head;
@@ -62,6 +64,8 @@ class Remutable {
       hash: {}, // Never match ===
       json: null,
     };
+
+    _.bindAll(this);
   }
 
   get dirty() {
@@ -139,19 +143,18 @@ class Remutable {
     return this.set(key, void 0);
   }
 
-  commit(coerceTo) {
+  commit() {
     this._dirty.should.be.ok;
     const patch = Remutable.Patch.fromMutations({
       mutations: this._mutations,
       hash: this._hash,
       version: this._version,
-    }, coerceTo);
+    });
     this._head = this._working;
     this._mutations = {};
     this._dirty = false;
     this._hash = patch.to.h;
     this._version = patch.to.v;
-    this.callOnChangeListeners(patch);
     return patch;
   }
 
@@ -163,7 +166,9 @@ class Remutable {
   }
 
   match(patch) {
-    _.dev(() => patch.should.be.an.instanceOf(Remutable.Patch));
+    if(__DEV__) {
+      patch.should.be.an.instanceOf(Remutable.Patch);
+    }
     return (this._hash === patch.from.h);
   }
 

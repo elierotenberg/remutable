@@ -5,14 +5,23 @@ var _prototypeProperties = function (child, staticProps, instanceProps) {
   if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
 };
 
-require("6to5/polyfill");var Promise = (global || window).Promise = require("lodash-next").Promise;var __DEV__ = process.env.NODE_ENV !== "production";var __PROD__ = !__DEV__;var __BROWSER__ = typeof window === "object";var __NODE__ = !__BROWSER__;var _ = require("lodash-next");
-
+require("6to5/polyfill");
+var _ = require("lodash");
+var should = require("should");
+var Promise = (global || window).Promise = require("bluebird");
+var __DEV__ = process.env.NODE_ENV !== "production";
+var __PROD__ = !__DEV__;
+var __BROWSER__ = typeof window === "object";
+var __NODE__ = !__BROWSER__;
+if (__DEV__) {
+  Promise.longStackTraces();
+}
 module.exports = function (Remutable) {
   var Patch = function Patch(_ref) {
     var mutations = _ref.mutations;
     var from = _ref.from;
     var to = _ref.to;
-    _.dev(function () {
+    if (__DEV__) {
       mutations.should.be.an.Object;
       from.should.be.an.Object;
       from.h.should.be.ok;
@@ -20,12 +29,14 @@ module.exports = function (Remutable) {
       to.should.be.an.Object;
       to.h.should.be.ok;
       to.v.should.be.a.Number;
-    });
+    }
     _.extend(this, {
       mutations: mutations,
       from: from,
       to: to });
     this._serialized = null;
+
+    _.bindAll(this);
   };
 
   Patch.prototype.toJSON = function () {
@@ -69,12 +80,12 @@ module.exports = function (Remutable) {
   };
 
   Patch.combine = function (patchA, patchB) {
-    _.dev(function () {
+    if (__DEV__) {
       patchA.should.be.an.instanceOf(Patch);
       patchB.should.be.an.instanceOf(Patch);
       // One can only combine compatible patches
       patchA.target.should.be.exactly(patchB.source);
-    });
+    }
     return new Patch({
       mutations: _.extend(_.clone(patchA.mutations), patchB.mutations),
       from: _.clone(patchA.from),
@@ -82,13 +93,13 @@ module.exports = function (Remutable) {
   };
 
   Patch.fromDiff = function (prev, next) {
-    _.dev(function () {
+    if (__DEV__) {
       prev.should.be.an.instanceOf(Remutable);
       next.should.be.an.instanceOf(Remutable);
       prev.version.should.be.below(next.version);
       prev.dirty.should.not.be.ok;
       next.dirty.should.not.be.ok;
-    });
+    }
     var from = {
       h: prev.hash,
       v: prev.version };

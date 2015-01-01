@@ -5,7 +5,17 @@ var _prototypeProperties = function (child, staticProps, instanceProps) {
   if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
 };
 
-require("6to5/polyfill");var Promise = (global || window).Promise = require("lodash-next").Promise;var __DEV__ = process.env.NODE_ENV !== "production";var __PROD__ = !__DEV__;var __BROWSER__ = typeof window === "object";var __NODE__ = !__BROWSER__;var _ = require("lodash-next");
+require("6to5/polyfill");
+var _ = require("lodash");
+var should = require("should");
+var Promise = (global || window).Promise = require("bluebird");
+var __DEV__ = process.env.NODE_ENV !== "production";
+var __PROD__ = !__DEV__;
+var __BROWSER__ = typeof window === "object";
+var __NODE__ = !__BROWSER__;
+if (__DEV__) {
+  Promise.longStackTraces();
+}
 var crc32 = require("crc-32").str;
 var sigmund = require("sigmund");
 var Immutable = require("immutable");
@@ -35,10 +45,13 @@ var Producer = function Producer(ctx) {
   if (__DEV__) {
     ctx.should.be.an.instanceOf(_Remutable);
   }
+  this._ctx = ctx;
   // proxy all these methods to ctx
   ["delete", "rollback", "commit", "match"].forEach(function (m) {
     return _this2[m] = ctx[m];
   });
+
+  _.bindAll(this);
 };
 
 Producer.prototype.set = function () {
@@ -56,10 +69,10 @@ var Remutable = function Remutable(data, version, hash) {
   if (hash === undefined) hash = null;
   hash = hash || Remutable.hashFn(Remutable.signFn(data));
 
-  _.dev(function () {
+  if (__DEV__) {
     data.should.be.an.Object;
     version.should.be.a.Number;
-  });
+  }
 
   this._head = Immutable.Map(data);
   this._working = this._head;
@@ -71,6 +84,8 @@ var Remutable = function Remutable(data, version, hash) {
   this._serialized = {
     hash: {}, // Never match ===
     json: null };
+
+  _.bindAll(this);
 };
 
 Remutable.prototype.createConsumer = function () {
@@ -126,18 +141,17 @@ Remutable.prototype["delete"] = function (key) {
   return this.set(key, void 0);
 };
 
-Remutable.prototype.commit = function (coerceTo) {
+Remutable.prototype.commit = function () {
   this._dirty.should.be.ok;
   var patch = Remutable.Patch.fromMutations({
     mutations: this._mutations,
     hash: this._hash,
-    version: this._version }, coerceTo);
+    version: this._version });
   this._head = this._working;
   this._mutations = {};
   this._dirty = false;
   this._hash = patch.to.h;
   this._version = patch.to.v;
-  this.callOnChangeListeners(patch);
   return patch;
 };
 
@@ -149,9 +163,9 @@ Remutable.prototype.rollback = function () {
 };
 
 Remutable.prototype.match = function (patch) {
-  _.dev(function () {
-    return patch.should.be.an.instanceOf(Remutable.Patch);
-  });
+  if (__DEV__) {
+    patch.should.be.an.instanceOf(Remutable.Patch);
+  }
   return this._hash === patch.from.h;
 };
 
