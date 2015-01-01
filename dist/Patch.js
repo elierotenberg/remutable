@@ -59,14 +59,14 @@ module.exports = function (Remutable) {
     return Patch.fromMutations({ mutations: mutations, hash: patch.to.h, version: patch.to.v });
   };
 
-  Patch.fromMutations = function (_ref2, coerceTo) {
+  Patch.fromMutations = function (_ref2) {
     var mutations = _ref2.mutations;
     var hash = _ref2.hash;
     var version = _ref2.version;
     var from = { h: hash, v: version };
     // New hash is calculated so that if two identical remutables are updated
     // using structurally equal mutations, then they will get the same hash.
-    var to = coerceTo || { h: Remutable.hashFn(hash + Remutable.signFn(mutations)), v: version + 1 };
+    var to = { h: Remutable.hashFn(hash + Remutable.signFn(mutations)), v: version + 1 };
     return new Patch({ mutations: mutations, from: from, to: to });
   };
 
