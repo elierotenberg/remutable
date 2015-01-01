@@ -5,6 +5,43 @@ const Immutable = require('immutable');
 
 const Patch = require('./Patch');
 
+let _Remutable;
+
+class Consumer {
+  constructor(ctx) {
+    if(__DEV__) {
+      ctx.should.be.an.instanceOf(_Remutable);
+    }
+    this._ctx = ctx;
+    // proxy all these property getters to ctx
+    ['head', 'hash', 'version']
+    .forEach((p) => Object.defineProperty(this, p, {
+        enumerable: true,
+        get: () => ctx[p],
+    }));
+  }
+}
+
+class Producer {
+  constructor(ctx) {
+    if(__DEV__) {
+      ctx.should.be.an.instanceOf(_Remutable);
+    }
+    // proxy all these methods to ctx
+    ['delete', 'rollback', 'commit', 'match']
+    .forEach((m) => this[m] = ctx[m]);
+  }
+
+  set() {
+    this._ctx.set.apply(this._ctx, arguments);
+    return this;
+  }
+
+  apply() {
+    this._ctx.apply.apply(this._ctx, arguments);
+  }
+}
+
 class Remutable {
   constructor(data = {}, version = 0, hash = null) {
     hash = hash || Remutable.hashFn(Remutable.signFn(data));
@@ -25,8 +62,6 @@ class Remutable {
       hash: {}, // Never match ===
       json: null,
     };
-    // 'No overhead by default'
-    this._onChangeListeners = null;
   }
 
   get dirty() {
@@ -49,6 +84,14 @@ class Remutable {
     return this._working;
   }
 
+  createConsumer() {
+    return new Consumer(this);
+  }
+
+  createProducer() {
+    return new Producer(this);
+  }
+
   destroy() {
     // Explicitly nullify references
     this._head = null;
@@ -56,7 +99,6 @@ class Remutable {
     this._dirty = null;
     this._mutations = null;
     this._serialized = null;
-    this._onChangeListeners = null;
   }
 
   toJSON() {
@@ -97,34 +139,6 @@ class Remutable {
     return this.set(key, void 0);
   }
 
-  onChange(fn) {
-    _.dev(() => fn.should.be.a.Function);
-    if(!this._onChangeListeners) {
-      this._onChangeListeners = {};
-    }
-    const id = _.uniqueId('l');
-    this._onChangeListeners[id] = fn;
-    return id;
-  }
-
-  offChange(id) {
-    _.dev(() => {
-      id.should.be.a.String;
-      (this._onChangeListeners !== null).should.be.ok;
-      (this._onChangeListeners[id] !== void 0).should.be.ok;
-    });
-    delete this._onChangeListeners[id];
-    if(_.size(this._onChangeListeners) === 0) {
-      this._onChangeListeners = null;
-    }
-  }
-
-  callOnChangeListeners(patch) {
-    if(this._onChangeListeners !== null) {
-      _.each(this._onChangeListeners, (fn) => fn(this._head, patch));
-    }
-  }
-
   commit(coerceTo) {
     this._dirty.should.be.ok;
     const patch = Remutable.Patch.fromMutations({
@@ -145,6 +159,7 @@ class Remutable {
     this._working = this._head;
     this._mutations = {};
     this._dirty = false;
+    return this;
   }
 
   match(patch) {
@@ -170,7 +185,6 @@ class Remutable {
     this._working = this._head = head;
     this._hash = patch.to.h;
     this._version = patch.to.v;
-    this.callOnChangeListeners(patch);
     return this;
   }
 
@@ -187,11 +201,14 @@ _.extend(Remutable.prototype, {
   _hash: null,
   _version: null,
   _dirty: null,
-  _onChangeListeners: null,
 });
+
+_Remutable = Remutable;
 
 Remutable.hashFn = crc32;
 Remutable.signFn = sigmund;
 Remutable.Patch = Patch(Remutable);
+
+Object.assign(Remutable, { Consumer, Producer });
 
 module.exports = Remutable;

@@ -12,6 +12,44 @@ var Immutable = require("immutable");
 
 var Patch = require("./Patch");
 
+var _Remutable = undefined;
+
+var Consumer = function Consumer(ctx) {
+  var _this = this;
+  if (__DEV__) {
+    ctx.should.be.an.instanceOf(_Remutable);
+  }
+  this._ctx = ctx;
+  // proxy all these property getters to ctx
+  ["head", "hash", "version"].forEach(function (p) {
+    return Object.defineProperty(_this, p, {
+      enumerable: true,
+      get: function () {
+        return ctx[p];
+      } });
+  });
+};
+
+var Producer = function Producer(ctx) {
+  var _this2 = this;
+  if (__DEV__) {
+    ctx.should.be.an.instanceOf(_Remutable);
+  }
+  // proxy all these methods to ctx
+  ["delete", "rollback", "commit", "match"].forEach(function (m) {
+    return _this2[m] = ctx[m];
+  });
+};
+
+Producer.prototype.set = function () {
+  this._ctx.set.apply(this._ctx, arguments);
+  return this;
+};
+
+Producer.prototype.apply = function () {
+  this._ctx.apply.apply(this._ctx, arguments);
+};
+
 var Remutable = function Remutable(data, version, hash) {
   if (data === undefined) data = {};
   if (version === undefined) version = 0;
@@ -33,8 +71,14 @@ var Remutable = function Remutable(data, version, hash) {
   this._serialized = {
     hash: {}, // Never match ===
     json: null };
-  // 'No overhead by default'
-  this._onChangeListeners = null;
+};
+
+Remutable.prototype.createConsumer = function () {
+  return new Consumer(this);
+};
+
+Remutable.prototype.createProducer = function () {
+  return new Producer(this);
 };
 
 Remutable.prototype.destroy = function () {
@@ -44,7 +88,6 @@ Remutable.prototype.destroy = function () {
   this._dirty = null;
   this._mutations = null;
   this._serialized = null;
-  this._onChangeListeners = null;
 };
 
 Remutable.prototype.toJSON = function () {
@@ -83,40 +126,6 @@ Remutable.prototype["delete"] = function (key) {
   return this.set(key, void 0);
 };
 
-Remutable.prototype.onChange = function (fn) {
-  _.dev(function () {
-    return fn.should.be.a.Function;
-  });
-  if (!this._onChangeListeners) {
-    this._onChangeListeners = {};
-  }
-  var id = _.uniqueId("l");
-  this._onChangeListeners[id] = fn;
-  return id;
-};
-
-Remutable.prototype.offChange = function (id) {
-  var _this = this;
-  _.dev(function () {
-    id.should.be.a.String;
-    (_this._onChangeListeners !== null).should.be.ok;
-    (_this._onChangeListeners[id] !== void 0).should.be.ok;
-  });
-  delete this._onChangeListeners[id];
-  if (_.size(this._onChangeListeners) === 0) {
-    this._onChangeListeners = null;
-  }
-};
-
-Remutable.prototype.callOnChangeListeners = function (patch) {
-  var _this2 = this;
-  if (this._onChangeListeners !== null) {
-    _.each(this._onChangeListeners, function (fn) {
-      return fn(_this2._head, patch);
-    });
-  }
-};
-
 Remutable.prototype.commit = function (coerceTo) {
   this._dirty.should.be.ok;
   var patch = Remutable.Patch.fromMutations({
@@ -136,6 +145,7 @@ Remutable.prototype.rollback = function () {
   this._working = this._head;
   this._mutations = {};
   this._dirty = false;
+  return this;
 };
 
 Remutable.prototype.match = function (patch) {
@@ -162,7 +172,6 @@ Remutable.prototype.apply = function (patch) {
   this._working = this._head = _head;
   this._hash = patch.to.h;
   this._version = patch.to.v;
-  this.callOnChangeListeners(patch);
   return this;
 };
 
@@ -214,11 +223,14 @@ _.extend(Remutable.prototype, {
   _mutations: null,
   _hash: null,
   _version: null,
-  _dirty: null,
-  _onChangeListeners: null });
+  _dirty: null });
+
+_Remutable = Remutable;
 
 Remutable.hashFn = crc32;
 Remutable.signFn = sigmund;
 Remutable.Patch = Patch(Remutable);
+
+Object.assign(Remutable, { Consumer: Consumer, Producer: Producer });
 
 module.exports = Remutable;

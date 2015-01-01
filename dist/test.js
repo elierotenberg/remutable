@@ -1,8 +1,10 @@
 "use strict";
 
 require("6to5/polyfill");var Promise = (global || window).Promise = require("lodash-next").Promise;var __DEV__ = process.env.NODE_ENV !== "production";var __PROD__ = !__DEV__;var __BROWSER__ = typeof window === "object";var __NODE__ = !__BROWSER__;var Remutable = require("../");
-var Patch = Remutable.Patch;
 require("lodash-next");
+
+var Patch = Remutable.Patch;
+
 
 var robert = "Robert Heinlein";
 var isaac = "Isaac Asimov";
@@ -53,14 +55,8 @@ var patch = userList.commit();
 var jsonPatch = patch.toJSON();
 jsonPatch.should.be.exactly("{\"m\":{\"3\":{\"t\":\"Dan Simmons\"}},\"f\":{\"h\":2045445329,\"v\":1},\"t\":{\"h\":-195302221,\"v\":2}}");
 var patchCopy = Patch.fromJSON(jsonPatch);
-// We can synchronously react to updates
-var onChange = userListCopy.onChange(function (head, patch) {
-  patch.should.be.exactly(patchCopy);
-  head.get("3").should.be.exactly(dan);
-});
 userListCopy.apply(patchCopy);
 userListCopy.head.get("3").should.be.exactly(dan);
-userListCopy.offChange(onChange);
 
 // It's possible to implement an undo stack by reverting patches
 var revert = Patch.revert(patch);
@@ -92,3 +88,11 @@ userList.commit();
 var diffPatch = Patch.fromDiff(userListCopy2, userList);
 userListCopy2.apply(diffPatch);
 userListCopy2.head.has("5").should.be.exactly(false);
+
+// We can also restrict to Consumer and Producer facades.
+var userListProducer = userList.createProducer();
+var userListConsummer = userList.createConsumer();
+userListProducer.should.not.have.property("get");
+userListConsummer.should.not.have.property("set");
+userListProducer.set("5", manu).commit();
+userListConsummer.head.get("5").should.be.exactly(manu);
