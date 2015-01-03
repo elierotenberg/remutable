@@ -155,9 +155,11 @@ Checks whether the given patch can be applied to the current remutable.
 
 Checks that the patch is a fast-forward from the current object version (or throws) and applies the patch efficiently.
 
-`r.toJSON(): string`
+`r.toJSON(): string`/`r.toJS(): Object`
 
-Returns a compact JSON string representing the remutable instance. Can then be passed to `Remutable.fromJSON()`.
+Returns a compact JSON string representing (resp. a serializable Object) the remutable instance. Can then be passed to `Remutable.fromJSON()` (resp. `Remutable.fromJS()`).
+
+This methods is efficently cached so that each subsequent call to `toJSON()` (resp. `toJS()`) is nearly instant. The result from `toJS()` should be considered read-only.
 
 `r.createConsumer(): new Remutable.Consumer`
 
@@ -172,13 +174,15 @@ Creates a new Producer object, with write-only semantics interface, eg. `set`, `
 Reconstructs a fresh Remutable instance from a JSON string representation.
 It is guaranteed that `Remutable.fromJSON(r.toString()).head.is(r.head) === true`.
 
-`patch.toJSON(): string`
+`patch.toJSON(): string`/`patch.toJS(): Object`
 
-Returns a compact JSON string representing the patch instance. Can then be passed to `Remutable.Patch.fromJSON()`.
+Returns a compact JSON string (resp. a serializable Object) representing the patch instance. Can then be passed to `Remutable.Patch.fromJSON()` (resp. `Remutable.Patch.fromJS()`.
 
-`Remutable.Patch.fromJSON(json): new Patch`
+This method is efficiently cached so that each subsequent call to `toJSON()` (resp. `toJS()`) is nearly instant. The result from `toJS()` should be considered read-only.
 
-Reconstructs a fresh Patch instance from a JSON string representation.
+`Remutable.Patch.fromJSON(json): new Patch`/`Remutable.Patch.fromJS(js): Object`
+
+Reconstructs a fresh Patch instance from a JSON string representation (resp. from a serializable Object).
 
 `get patch.source: string`
 

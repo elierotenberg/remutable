@@ -60,11 +60,14 @@ class Remutable {
     this._hash = hash;
     this._dirty = false;
     this._mutations = {};
-    this._serialized = {
-      hash: {}, // Never match ===
+    this._js = {
+      hash: {},
+      js: null,
+    };
+    this._json = {
+      hash: {},
       json: null,
     };
-
     _.bindAll(this);
   }
 
@@ -105,18 +108,28 @@ class Remutable {
     this._serialized = null;
   }
 
-  toJSON() {
-    if(this._serialized.hash !== this._hash) {
-      this._serialized = {
+  toJS() {
+    if(this._js.hash !== this._hash) {
+      this._js = {
         hash: this._hash,
-        json: JSON.stringify({
+        js: {
           h: this._hash,
           v: this._version,
-          d: this._head.toObject()
-        }),
+          d: this._head.toJS(),
+        },
       };
     }
-    return this._serialized.json;
+    return this._js.js;
+  }
+
+  toJSON() {
+    if(this._json.hash !== this._hash) {
+      this._json = {
+        hash: this._hash,
+        json: JSON.stringify(this.toJS()),
+      };
+    }
+    return this._json.json;
   }
 
   get(key) {
@@ -193,9 +206,12 @@ class Remutable {
     return this;
   }
 
-  static fromJSON(json) {
-    const { h, v, d } = JSON.parse(json);
+  static fromJS({ h, v, d }) {
     return new Remutable(d, v, h);
+  }
+
+  static fromJSON(json) {
+    return Remutable.fromJS(JSON.parse(json));
   }
 }
 

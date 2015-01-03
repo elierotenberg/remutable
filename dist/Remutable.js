@@ -81,10 +81,12 @@ var Remutable = function Remutable(data, version, hash) {
   this._hash = hash;
   this._dirty = false;
   this._mutations = {};
-  this._serialized = {
-    hash: {}, // Never match ===
+  this._js = {
+    hash: {},
+    js: null };
+  this._json = {
+    hash: {},
     json: null };
-
   _.bindAll(this);
 };
 
@@ -105,17 +107,25 @@ Remutable.prototype.destroy = function () {
   this._serialized = null;
 };
 
-Remutable.prototype.toJSON = function () {
-  if (this._serialized.hash !== this._hash) {
-    this._serialized = {
+Remutable.prototype.toJS = function () {
+  if (this._js.hash !== this._hash) {
+    this._js = {
       hash: this._hash,
-      json: JSON.stringify({
+      js: {
         h: this._hash,
         v: this._version,
-        d: this._head.toObject()
-      }) };
+        d: this._head.toJS() } };
   }
-  return this._serialized.json;
+  return this._js.js;
+};
+
+Remutable.prototype.toJSON = function () {
+  if (this._json.hash !== this._hash) {
+    this._json = {
+      hash: this._hash,
+      json: JSON.stringify(this.toJS()) };
+  }
+  return this._json.json;
 };
 
 Remutable.prototype.get = function (key) {
@@ -189,13 +199,15 @@ Remutable.prototype.apply = function (patch) {
   return this;
 };
 
-Remutable.fromJSON = function (json) {
-  var _ref = JSON.parse(json);
-
+Remutable.fromJS = function (_ref) {
   var h = _ref.h;
   var v = _ref.v;
   var d = _ref.d;
   return new Remutable(d, v, h);
+};
+
+Remutable.fromJSON = function (json) {
+  return Remutable.fromJS(JSON.parse(json));
 };
 
 _prototypeProperties(Remutable, null, {

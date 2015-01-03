@@ -30,23 +30,30 @@ module.exports = function (Remutable) {
       to.h.should.be.ok;
       to.v.should.be.a.Number;
     }
-    _.extend(this, {
+    Object.assign(this, {
       mutations: mutations,
       from: from,
-      to: to });
-    this._serialized = null;
-
+      to: to,
+      _js: null,
+      _json: null });
     _.bindAll(this);
   };
 
-  Patch.prototype.toJSON = function () {
-    if (this._serialized === null) {
-      this._serialized = JSON.stringify({
+  Patch.prototype.toJS = function () {
+    if (this._js === null) {
+      this._js = {
         m: this.mutations,
         f: this.from,
-        t: this.to });
+        t: this.to };
     }
-    return this._serialized;
+    return this._js;
+  };
+
+  Patch.prototype.toJSON = function () {
+    if (this._json === null) {
+      this._json = JSON.stringify(this.toJS());
+    }
+    return this._json;
   };
 
   Patch.revert = function (patch) {
@@ -70,13 +77,20 @@ module.exports = function (Remutable) {
     return new Patch({ mutations: mutations, from: from, to: to });
   };
 
-  Patch.fromJSON = function (json) {
-    var _ref3 = JSON.parse(json);
-
+  Patch.fromJS = function (_ref3) {
     var m = _ref3.m;
     var f = _ref3.f;
     var t = _ref3.t;
+    if (__DEV__) {
+      m.should.be.an.Object;
+      f.should.be.an.Object;
+      t.should.be.an.Object;
+    }
     return new Patch({ mutations: m, from: f, to: t });
+  };
+
+  Patch.fromJSON = function (json) {
+    return Patch.fromJS(JSON.parse(json));
   };
 
   Patch.combine = function (patchA, patchB) {
