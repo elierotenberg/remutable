@@ -95,8 +95,6 @@ module.exports = function(Remutable) {
         (prev instanceof Remutable || prev instanceof Remutable.Consumer).should.be.ok;
         (next instanceof Remutable || next instanceof Remutable.Consumer).should.be.ok;
         prev.version.should.be.below(next.version);
-        prev.dirty.should.not.be.ok;
-        next.dirty.should.not.be.ok;
       }
       const from = {
         h: prev.hash,
