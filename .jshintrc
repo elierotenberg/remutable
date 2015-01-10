@@ -1,5 +1,5 @@
 {
-    "maxerr"        : 50,       // {int} Maximum error before stopping
+    "maxerr"        : 10,       // {int} Maximum error before stopping
 
     // Enforcing
     "bitwise"       : true,     // true: Prohibit bitwise operators (&, |, ^, etc.)
@@ -33,7 +33,7 @@
 
     // Relaxing
     "asi"           : false,     // true: Tolerate Automatic Semicolon Insertion (no semicolons)
-    "boss"          : false,     // true: Tolerate assignments where comparisons would be expected
+    "boss"          : true,      // true: Tolerate assignments where comparisons would be expected
     "debug"         : false,     // true: Allow debugger statements e.g. browser breakpoints.
     "eqnull"        : false,     // true: Tolerate use of `== null`
     "esnext"        : true,      // true: Allow ES.next (ES6) syntax (ex: `const`)
@@ -81,6 +81,7 @@
     // Custom Globals
     "globals"       : {        // additional predefined global variables
       "Promise"     : true,
+      "should"      : true,
       "_"           : true,
       "__DEV__"     : true,
       "__PROD__"    : true,

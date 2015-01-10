@@ -15,6 +15,7 @@ var __BROWSER__ = typeof window === "object";
 var __NODE__ = !__BROWSER__;
 if (__DEV__) {
   Promise.longStackTraces();
+  Error.stackTraceLimit = Infinity;
 }
 var crc32 = require("crc-32").str;
 var sigmund = require("sigmund");
@@ -50,23 +51,33 @@ var Producer = function Producer(ctx) {
   ["delete", "rollback", "commit", "match"].forEach(function (m) {
     return _this2[m] = ctx[m];
   });
-
+  // proxy all these property getters to ctx
+  ["head", "working", "hash", "version"].forEach(function (p) {
+    return Object.defineProperty(_this2, p, {
+      enumerable: true,
+      get: function () {
+        return ctx[p];
+      } });
+  });
   _.bindAll(this);
 };
 
 Producer.prototype.set = function () {
+  // intercept set to make it chainable
   this._ctx.set.apply(this._ctx, arguments);
   return this;
 };
 
 Producer.prototype.apply = function () {
+  // intercept apply to make it chainable
   this._ctx.apply.apply(this._ctx, arguments);
+  return this;
 };
 
-var Remutable = function Remutable(data, version, hash) {
-  if (data === undefined) data = {};
-  if (version === undefined) version = 0;
-  if (hash === undefined) hash = null;
+var Remutable = function Remutable() {
+  var data = arguments[0] === undefined ? {} : arguments[0];
+  var version = arguments[1] === undefined ? 0 : arguments[1];
+  var hash = arguments[2] === undefined ? null : arguments[2];
   hash = hash || Remutable.hashFn(Remutable.signFn(data));
 
   if (__DEV__) {

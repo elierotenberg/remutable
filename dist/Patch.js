@@ -15,6 +15,7 @@ var __BROWSER__ = typeof window === "object";
 var __NODE__ = !__BROWSER__;
 if (__DEV__) {
   Promise.longStackTraces();
+  Error.stackTraceLimit = Infinity;
 }
 module.exports = function (Remutable) {
   var Patch = function Patch(_ref) {

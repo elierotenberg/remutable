@@ -30,17 +30,23 @@ class Producer {
     // proxy all these methods to ctx
     ['delete', 'rollback', 'commit', 'match']
     .forEach((m) => this[m] = ctx[m]);
-
+    // proxy all these property getters to ctx
+    ['head', 'working', 'hash', 'version']
+    .forEach((p) => Object.defineProperty(this, p, {
+      enumerable: true,
+      get: () => ctx[p],
+    }));
     _.bindAll(this);
   }
 
-  set() {
+  set() { // intercept set to make it chainable
     this._ctx.set.apply(this._ctx, arguments);
     return this;
   }
 
-  apply() {
+  apply() { // intercept apply to make it chainable
     this._ctx.apply.apply(this._ctx, arguments);
+    return this;
   }
 }
 
