@@ -1,6 +1,6 @@
 {
   "name": "remutable",
-  "version": "0.18.1",
+  "version": "0.18.2",
   "description": "Like Immutable, but actually mutable with diffs and versions.",
   "main": "dist/index.js",
   "scripts": {
