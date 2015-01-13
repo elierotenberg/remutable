@@ -28,12 +28,12 @@
     "jshint-stylish": "^1.0.0"
   },
   "dependencies": {
-    "6to5": "^2.9.4",
-    "bluebird": "^2.6.2",
+    "6to5": "^2.11.4",
+    "bluebird": "^2.6.4",
     "crc-32": "^0.2.2",
-    "immutable": "^3.5.0",
+    "immutable": "^3.6.2",
     "lodash": "^2.4.1",
-    "should": "^4.4.4",
+    "should": "^4.5.2",
     "sigmund": "^1.0.0"
   }
 }
