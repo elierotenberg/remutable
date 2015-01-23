@@ -31,6 +31,10 @@ var Consumer = function Consumer(ctx) {
     ctx.should.be.an.instanceOf(_Remutable);
   }
   this._ctx = ctx;
+  // proxy all these methods to ctx
+  ["toJS", "toJSON"].forEach(function (m) {
+    return _this[m] = ctx[m];
+  });
   // proxy all these property getters to ctx
   ["head", "hash", "version"].forEach(function (p) {
     return Object.defineProperty(_this, p, {
@@ -49,7 +53,7 @@ var Producer = (function () {
     }
     this._ctx = ctx;
     // proxy all these methods to ctx
-    ["delete", "rollback", "commit", "match"].forEach(function (m) {
+    ["delete", "rollback", "commit", "match", "toJS", "toJSON"].forEach(function (m) {
       return _this2[m] = ctx[m];
     });
     // proxy all these property getters to ctx

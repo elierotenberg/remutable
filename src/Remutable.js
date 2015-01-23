@@ -12,6 +12,9 @@ class Consumer {
       ctx.should.be.an.instanceOf(_Remutable);
     }
     this._ctx = ctx;
+    // proxy all these methods to ctx
+    ['toJS', 'toJSON']
+    .forEach((m) => this[m] = ctx[m]);
     // proxy all these property getters to ctx
     ['head', 'hash', 'version']
     .forEach((p) => Object.defineProperty(this, p, {
@@ -28,7 +31,7 @@ class Producer {
     }
     this._ctx = ctx;
     // proxy all these methods to ctx
-    ['delete', 'rollback', 'commit', 'match']
+    ['delete', 'rollback', 'commit', 'match', 'toJS', 'toJSON']
     .forEach((m) => this[m] = ctx[m]);
     // proxy all these property getters to ctx
     ['head', 'working', 'hash', 'version']
