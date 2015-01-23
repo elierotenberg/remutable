@@ -65,7 +65,7 @@ var Producer = (function () {
 
   _prototypeProperties(Producer, null, {
     set: {
-      value: function () {
+      value: function set() {
         // intercept set to make it chainable
         this._ctx.set.apply(this._ctx, arguments);
         return this;
@@ -75,7 +75,7 @@ var Producer = (function () {
       configurable: true
     },
     apply: {
-      value: function () {
+      value: function apply() {
         // intercept apply to make it chainable
         this._ctx.apply.apply(this._ctx, arguments);
         return this;
@@ -119,7 +119,7 @@ var Remutable = (function () {
 
   _prototypeProperties(Remutable, {
     fromJS: {
-      value: function (_ref) {
+      value: function fromJS(_ref) {
         var h = _ref.h;
         var v = _ref.v;
         var d = _ref.d;
@@ -130,7 +130,7 @@ var Remutable = (function () {
       configurable: true
     },
     fromJSON: {
-      value: function (json) {
+      value: function fromJSON(json) {
         return Remutable.fromJS(JSON.parse(json));
       },
       writable: true,
@@ -174,7 +174,7 @@ var Remutable = (function () {
       configurable: true
     },
     createConsumer: {
-      value: function () {
+      value: function createConsumer() {
         return new Consumer(this);
       },
       writable: true,
@@ -182,7 +182,7 @@ var Remutable = (function () {
       configurable: true
     },
     createProducer: {
-      value: function () {
+      value: function createProducer() {
         return new Producer(this);
       },
       writable: true,
@@ -190,7 +190,7 @@ var Remutable = (function () {
       configurable: true
     },
     destroy: {
-      value: function () {
+      value: function destroy() {
         // Explicitly nullify references
         this._head = null;
         this._working = null;
@@ -203,7 +203,7 @@ var Remutable = (function () {
       configurable: true
     },
     toJS: {
-      value: function () {
+      value: function toJS() {
         if (this._js.hash !== this._hash) {
           this._js = {
             hash: this._hash,
@@ -219,7 +219,7 @@ var Remutable = (function () {
       configurable: true
     },
     toJSON: {
-      value: function () {
+      value: function toJSON() {
         if (this._json.hash !== this._hash) {
           this._json = {
             hash: this._hash,
@@ -232,7 +232,7 @@ var Remutable = (function () {
       configurable: true
     },
     get: {
-      value: function (key) {
+      value: function get(key) {
         return this._working.get(key);
       },
       writable: true,
@@ -240,7 +240,7 @@ var Remutable = (function () {
       configurable: true
     },
     set: {
-      value: function (key, val) {
+      value: function set(key, val) {
         key.should.be.a.String;
         this._dirty = true;
         // Retain the previous value to make the patch reversible
@@ -259,7 +259,7 @@ var Remutable = (function () {
       configurable: true
     },
     "delete": {
-      value: function (key) {
+      value: function _delete(key) {
         return this.set(key, void 0);
       },
       writable: true,
@@ -267,7 +267,7 @@ var Remutable = (function () {
       configurable: true
     },
     commit: {
-      value: function () {
+      value: function commit() {
         this._dirty.should.be.ok;
         var patch = Remutable.Patch.fromMutations({
           mutations: this._mutations,
@@ -285,7 +285,7 @@ var Remutable = (function () {
       configurable: true
     },
     rollback: {
-      value: function () {
+      value: function rollback() {
         this._working = this._head;
         this._mutations = {};
         this._dirty = false;
@@ -296,7 +296,7 @@ var Remutable = (function () {
       configurable: true
     },
     match: {
-      value: function (patch) {
+      value: function match(patch) {
         if (__DEV__) {
           patch.should.be.an.instanceOf(Remutable.Patch);
         }
@@ -307,10 +307,10 @@ var Remutable = (function () {
       configurable: true
     },
     apply: {
-      value: function (patch) {
+      value: function apply(patch) {
         this._dirty.should.not.be.ok;
         this.match(patch).should.be.ok;
-        var _head = this._head.withMutations(function (map) {
+        var head = this._head.withMutations(function (map) {
           Object.keys(patch.mutations).forEach(function (key) {
             var t = patch.mutations[key].t;
             if (t === void 0) {
@@ -321,7 +321,7 @@ var Remutable = (function () {
           });
           return map;
         });
-        this._working = this._head = _head;
+        this._working = this._head = head;
         this._hash = patch.to.h;
         this._version = patch.to.v;
         return this;

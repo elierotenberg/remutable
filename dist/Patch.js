@@ -43,7 +43,7 @@ module.exports = function (Remutable) {
 
     _prototypeProperties(Patch, {
       revert: {
-        value: function (patch) {
+        value: function revert(patch) {
           var mutations = {};
           Object.keys(patch.mutations).forEach(function (key) {
             var f = patch.mutations[key].f;
@@ -57,7 +57,7 @@ module.exports = function (Remutable) {
         configurable: true
       },
       fromMutations: {
-        value: function (_ref2) {
+        value: function fromMutations(_ref2) {
           var mutations = _ref2.mutations;
           var hash = _ref2.hash;
           var version = _ref2.version;
@@ -72,7 +72,7 @@ module.exports = function (Remutable) {
         configurable: true
       },
       fromJS: {
-        value: function (_ref3) {
+        value: function fromJS(_ref3) {
           var m = _ref3.m;
           var f = _ref3.f;
           var t = _ref3.t;
@@ -88,7 +88,7 @@ module.exports = function (Remutable) {
         configurable: true
       },
       fromJSON: {
-        value: function (json) {
+        value: function fromJSON(json) {
           return Patch.fromJS(JSON.parse(json));
         },
         writable: true,
@@ -96,7 +96,7 @@ module.exports = function (Remutable) {
         configurable: true
       },
       combine: {
-        value: function (patchA, patchB) {
+        value: function combine(patchA, patchB) {
           if (__DEV__) {
             patchA.should.be.an.instanceOf(Patch);
             patchB.should.be.an.instanceOf(Patch);
@@ -113,7 +113,7 @@ module.exports = function (Remutable) {
         configurable: true
       },
       fromDiff: {
-        value: function (prev, next) {
+        value: function fromDiff(prev, next) {
           if (__DEV__) {
             (prev instanceof Remutable || prev instanceof Remutable.Consumer).should.be.ok;
             (next instanceof Remutable || next instanceof Remutable.Consumer).should.be.ok;
@@ -157,7 +157,7 @@ module.exports = function (Remutable) {
         configurable: true
       },
       toJS: {
-        value: function () {
+        value: function toJS() {
           if (this._js === null) {
             this._js = {
               m: this.mutations,
@@ -171,7 +171,7 @@ module.exports = function (Remutable) {
         configurable: true
       },
       toJSON: {
-        value: function () {
+        value: function toJSON() {
           if (this._json === null) {
             this._json = JSON.stringify(this.toJS());
           }
