@@ -29,13 +29,11 @@ class Producer {
     if(__DEV__) {
       ctx.should.be.an.instanceOf(_Remutable);
     }
-    _.bindAll(this);
+    _.bindAll(this, ['set', 'apply']);
     this._ctx = ctx;
     // proxy all these methods to ctx
     ['delete', 'rollback', 'commit', 'match', 'toJS', 'toJSON']
-    .forEach((m) => this[m] = function() {
-      return ctx[m].apply(ctx, arguments);
-    });
+    .forEach((m) => this[m] = ctx[m]);
     // proxy all these property getters to ctx
     ['head', 'working', 'hash', 'version']
     .forEach((p) => Object.defineProperty(this, p, {
@@ -63,7 +61,20 @@ class Remutable {
       data.should.be.an.Object;
       version.should.be.a.Number;
     }
-    _.bindAll(this);
+    _.bindAll(this, [
+      'createConsumer',
+      'createProducer',
+      'destroy',
+      'toJS',
+      'toJSON',
+      'get',
+      'set',
+      'delete',
+      'commit',
+      'rollback',
+      'match',
+      'apply',
+    ]);
 
     this._head = Immutable.Map(data);
     this._working = this._head;

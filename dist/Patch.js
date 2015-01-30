@@ -35,7 +35,7 @@ module.exports = function (Remutable) {
         to: to,
         _js: null,
         _json: null });
-      _.bindAll(this);
+      _.bindAll(this, ["toJS", "toJSON"]);
     }
 
     _prototypeProperties(Patch, {

@@ -32,7 +32,7 @@
     "bluebird": "^2.9.3",
     "crc-32": "^0.2.2",
     "immutable": "^3.6.2",
-    "lodash": "^3.0.0",
+    "lodash": "^3.0.1",
     "should": "^4.6.2",
     "sigmund": "^1.0.0"
   }

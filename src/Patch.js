@@ -17,7 +17,10 @@ module.exports = function(Remutable) {
         _js: null,
         _json: null,
       });
-      _.bindAll(this);
+      _.bindAll(this, [
+        'toJS',
+        'toJSON',
+      ]);
     }
 
     get source() {
