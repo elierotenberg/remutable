@@ -29,17 +29,19 @@ class Producer {
     if(__DEV__) {
       ctx.should.be.an.instanceOf(_Remutable);
     }
+    _.bindAll(this);
     this._ctx = ctx;
     // proxy all these methods to ctx
     ['delete', 'rollback', 'commit', 'match', 'toJS', 'toJSON']
-    .forEach((m) => this[m] = ctx[m]);
+    .forEach((m) => this[m] = function() {
+      return ctx[m].apply(ctx, arguments);
+    });
     // proxy all these property getters to ctx
     ['head', 'working', 'hash', 'version']
     .forEach((p) => Object.defineProperty(this, p, {
       enumerable: true,
       get: () => ctx[p],
     }));
-    _.bindAll(this);
   }
 
   set() { // intercept set to make it chainable
@@ -61,6 +63,7 @@ class Remutable {
       data.should.be.an.Object;
       version.should.be.a.Number;
     }
+    _.bindAll(this);
 
     this._head = Immutable.Map(data);
     this._working = this._head;
@@ -77,7 +80,6 @@ class Remutable {
       hash: {},
       json: null,
     };
-    _.bindAll(this);
   }
 
   get dirty() {

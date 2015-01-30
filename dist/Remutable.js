@@ -1,9 +1,6 @@
 "use strict";
 
-var _prototypeProperties = function (child, staticProps, instanceProps) {
-  if (staticProps) Object.defineProperties(child, staticProps);
-  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-};
+var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
 require("6to5/polyfill");
 var _ = require("lodash");
@@ -47,24 +44,26 @@ var Consumer = function Consumer(ctx) {
 
 var Producer = (function () {
   function Producer(ctx) {
-    var _this2 = this;
+    var _this = this;
     if (__DEV__) {
       ctx.should.be.an.instanceOf(_Remutable);
     }
+    _.bindAll(this);
     this._ctx = ctx;
     // proxy all these methods to ctx
     ["delete", "rollback", "commit", "match", "toJS", "toJSON"].forEach(function (m) {
-      return _this2[m] = ctx[m];
+      return _this[m] = function () {
+        return ctx[m].apply(ctx, arguments);
+      };
     });
     // proxy all these property getters to ctx
     ["head", "working", "hash", "version"].forEach(function (p) {
-      return Object.defineProperty(_this2, p, {
+      return Object.defineProperty(_this, p, {
         enumerable: true,
         get: function () {
           return ctx[p];
         } });
     });
-    _.bindAll(this);
   }
 
   _prototypeProperties(Producer, null, {
@@ -75,7 +74,6 @@ var Producer = (function () {
         return this;
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     apply: {
@@ -85,7 +83,6 @@ var Producer = (function () {
         return this;
       },
       writable: true,
-      enumerable: true,
       configurable: true
     }
   });
@@ -104,6 +101,7 @@ var Remutable = (function () {
       data.should.be.an.Object;
       version.should.be.a.Number;
     }
+    _.bindAll(this);
 
     this._head = Immutable.Map(data);
     this._working = this._head;
@@ -118,7 +116,6 @@ var Remutable = (function () {
     this._json = {
       hash: {},
       json: null };
-    _.bindAll(this);
   }
 
   _prototypeProperties(Remutable, {
@@ -130,7 +127,6 @@ var Remutable = (function () {
         return new Remutable(d, v, h);
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     fromJSON: {
@@ -138,7 +134,6 @@ var Remutable = (function () {
         return Remutable.fromJS(JSON.parse(json));
       },
       writable: true,
-      enumerable: true,
       configurable: true
     }
   }, {
@@ -146,35 +141,30 @@ var Remutable = (function () {
       get: function () {
         return this._dirty;
       },
-      enumerable: true,
       configurable: true
     },
     hash: {
       get: function () {
         return this._hash;
       },
-      enumerable: true,
       configurable: true
     },
     version: {
       get: function () {
         return this._version;
       },
-      enumerable: true,
       configurable: true
     },
     head: {
       get: function () {
         return this._head;
       },
-      enumerable: true,
       configurable: true
     },
     working: {
       get: function () {
         return this._working;
       },
-      enumerable: true,
       configurable: true
     },
     createConsumer: {
@@ -182,7 +172,6 @@ var Remutable = (function () {
         return new Consumer(this);
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     createProducer: {
@@ -190,7 +179,6 @@ var Remutable = (function () {
         return new Producer(this);
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     destroy: {
@@ -203,7 +191,6 @@ var Remutable = (function () {
         this._serialized = null;
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     toJS: {
@@ -219,7 +206,6 @@ var Remutable = (function () {
         return this._js.js;
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     toJSON: {
@@ -232,7 +218,6 @@ var Remutable = (function () {
         return this._json.json;
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     get: {
@@ -240,7 +225,6 @@ var Remutable = (function () {
         return this._working.get(key);
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     set: {
@@ -259,7 +243,6 @@ var Remutable = (function () {
         return this;
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     "delete": {
@@ -267,7 +250,6 @@ var Remutable = (function () {
         return this.set(key, void 0);
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     commit: {
@@ -285,7 +267,6 @@ var Remutable = (function () {
         return patch;
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     rollback: {
@@ -296,7 +277,6 @@ var Remutable = (function () {
         return this;
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     match: {
@@ -307,7 +287,6 @@ var Remutable = (function () {
         return this._hash === patch.from.h;
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     apply: {
@@ -331,7 +310,6 @@ var Remutable = (function () {
         return this;
       },
       writable: true,
-      enumerable: true,
       configurable: true
     }
   });

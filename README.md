@@ -1,11 +1,30 @@
 Remutable
 =========
 
-Ultra simple, ultra efficient key/value map with mutations recording, diffing and patching.
+Ultra simple key-value map with constant-time identity check, replayable, undo-able and serializable diffing.
 
 Remutable is specifically designed to be nearly as performant as a plain Object, but with patching over the wire in mind.
 
-Implementation is extremely straightforward.
+Implementation is backed by the awesome Immutable-JS lib.
+
+### The problem
+
+Immutable-JS is neat, but what happens when you want to share Immutable objects over the wire, across a transport which doesn't understand Javascript reference identity?
+
+Remutable solves this by leveraging a simple fact: if you apply the same set of mutations, in the same order, to the same initial state, then the final state will also be the same. Internally, Remutable uses patch hashing to preserve the identity check constant-time, as the hash of the current state is computed by recursively hashing the initial state and each subsequent mutation (think git commit hash).
+
+We can illustrate this pseudocode diagram:
+
+```
+single source of truth (server)       consumer (client)
+v1 = Immutable.Map()
+send(serialize(v1))       ----------> v1 = unserialize(receive())
+(v2, diff1) = v1.set(...)
+send(diff1)               ----------> v2 = v1.patch(unserialize(receive()))
+(v3, diff2) = 2.set(...)
+send(diff2)               ----------> v3 = v2.patch(unserialize(receive()))
+```
+
 
 Example
 =======

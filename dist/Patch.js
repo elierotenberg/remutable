@@ -1,9 +1,6 @@
 "use strict";
 
-var _prototypeProperties = function (child, staticProps, instanceProps) {
-  if (staticProps) Object.defineProperties(child, staticProps);
-  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-};
+var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
 require("6to5/polyfill");
 var _ = require("lodash");
@@ -53,14 +50,13 @@ module.exports = function (Remutable) {
           return Patch.fromMutations({ mutations: mutations, hash: patch.to.h, version: patch.to.v });
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       fromMutations: {
-        value: function fromMutations(_ref2) {
-          var mutations = _ref2.mutations;
-          var hash = _ref2.hash;
-          var version = _ref2.version;
+        value: function fromMutations(_ref) {
+          var mutations = _ref.mutations;
+          var hash = _ref.hash;
+          var version = _ref.version;
           var from = { h: hash, v: version };
           // New hash is calculated so that if two identical remutables are updated
           // using structurally equal mutations, then they will get the same hash.
@@ -68,14 +64,13 @@ module.exports = function (Remutable) {
           return new Patch({ mutations: mutations, from: from, to: to });
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       fromJS: {
-        value: function fromJS(_ref3) {
-          var m = _ref3.m;
-          var f = _ref3.f;
-          var t = _ref3.t;
+        value: function fromJS(_ref) {
+          var m = _ref.m;
+          var f = _ref.f;
+          var t = _ref.t;
           if (__DEV__) {
             m.should.be.an.Object;
             f.should.be.an.Object;
@@ -84,7 +79,6 @@ module.exports = function (Remutable) {
           return new Patch({ mutations: m, from: f, to: t });
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       fromJSON: {
@@ -92,7 +86,6 @@ module.exports = function (Remutable) {
           return Patch.fromJS(JSON.parse(json));
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       combine: {
@@ -109,7 +102,6 @@ module.exports = function (Remutable) {
             to: _.clone(patchB.to) });
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       fromDiff: {
@@ -138,7 +130,6 @@ module.exports = function (Remutable) {
           return new Patch({ mutations: mutations, from: from, to: to });
         },
         writable: true,
-        enumerable: true,
         configurable: true
       }
     }, {
@@ -146,14 +137,12 @@ module.exports = function (Remutable) {
         get: function () {
           return this.from.h;
         },
-        enumerable: true,
         configurable: true
       },
       target: {
         get: function () {
           return this.to.h;
         },
-        enumerable: true,
         configurable: true
       },
       toJS: {
@@ -167,7 +156,6 @@ module.exports = function (Remutable) {
           return this._js;
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       toJSON: {
@@ -178,7 +166,6 @@ module.exports = function (Remutable) {
           return this._json;
         },
         writable: true,
-        enumerable: true,
         configurable: true
       }
     });
