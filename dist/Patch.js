@@ -2,7 +2,9 @@
 
 var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
-require("6to5/polyfill");
+var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+require("babel/polyfill");
 var _ = require("lodash");
 var should = require("should");
 var Promise = (global || window).Promise = require("bluebird");
@@ -20,6 +22,8 @@ module.exports = function (Remutable) {
       var mutations = _ref.mutations;
       var from = _ref.from;
       var to = _ref.to;
+      _classCallCheck(this, Patch);
+
       if (__DEV__) {
         mutations.should.be.an.Object;
         from.should.be.an.Object;
@@ -43,8 +47,9 @@ module.exports = function (Remutable) {
         value: function revert(patch) {
           var mutations = {};
           Object.keys(patch.mutations).forEach(function (key) {
-            var f = patch.mutations[key].f;
-            var t = patch.mutations[key].t;
+            var _patch$mutations$key = patch.mutations[key];
+            var f = _patch$mutations$key.f;
+            var t = _patch$mutations$key.t;
             mutations[key] = { f: t, t: f };
           });
           return Patch.fromMutations({ mutations: mutations, hash: patch.to.h, version: patch.to.v });

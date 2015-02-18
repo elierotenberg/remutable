@@ -2,7 +2,9 @@
 
 var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
-require("6to5/polyfill");
+var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+require("babel/polyfill");
 var _ = require("lodash");
 var should = require("should");
 var Promise = (global || window).Promise = require("bluebird");
@@ -24,6 +26,8 @@ var _Remutable = undefined;
 
 var Consumer = function Consumer(ctx) {
   var _this = this;
+  _classCallCheck(this, Consumer);
+
   if (__DEV__) {
     ctx.should.be.an.instanceOf(_Remutable);
   }
@@ -45,6 +49,8 @@ var Consumer = function Consumer(ctx) {
 var Producer = (function () {
   function Producer(ctx) {
     var _this = this;
+    _classCallCheck(this, Producer);
+
     if (__DEV__) {
       ctx.should.be.an.instanceOf(_Remutable);
     }
@@ -93,6 +99,8 @@ var Remutable = (function () {
     var data = arguments[0] === undefined ? {} : arguments[0];
     var version = arguments[1] === undefined ? 0 : arguments[1];
     var hash = arguments[2] === undefined ? null : arguments[2];
+    _classCallCheck(this, Remutable);
+
     hash = hash || Remutable.hashFn(Remutable.signFn(data));
 
     if (__DEV__) {
