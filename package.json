@@ -35,7 +35,6 @@
     "immutable": "^3.6.2",
     "jshint-stylish": "^1.0.0",
     "lodash": "^3.2.0",
-    "should": "^5.0.0",
-    "sigmund": "^1.0.0"
+    "should": "^5.0.0"
   }
 }

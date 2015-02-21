@@ -9,7 +9,7 @@ const manu = 'Emmanuel Kant';
 
 // Let's create an empty Remutable object
 const userList = new Remutable();
-userList.hash.should.be.exactly(366298937);
+userList.hash.should.be.exactly(-1549353149);
 userList.dirty.should.not.be.ok;
 
 // And set two values
@@ -35,7 +35,7 @@ userList.rollback();
 
 // Now we can serialize it to send it to the server via toJSON
 const json = userList.toJSON();
-json.should.be.exactly('{"h":2045445329,"v":1,"d":{"1":"Robert Heinlein","2":"Isaac Asimov"}}');
+json.should.be.exactly('{"h":1232569233,"v":1,"d":{"1":"Robert Heinlein","2":"Isaac Asimov"}}');
 
 // and read it back from the server via fromJSON
 const userListCopy = Remutable.fromJSON(json);
@@ -48,7 +48,7 @@ userList.set('3', dan);
 const patch = userList.commit();
 // We can transfer the patch in JSON form
 const jsonPatch = patch.toJSON();
-jsonPatch.should.be.exactly('{"m":{"3":{"t":"Dan Simmons"}},"f":{"h":2045445329,"v":1},"t":{"h":-195302221,"v":2}}');
+jsonPatch.should.be.exactly('{"m":{"3":{"t":"Dan Simmons"}},"f":{"h":1232569233,"v":1},"t":{"h":-1034672275,"v":2}}');
 const patchCopy = Patch.fromJSON(jsonPatch);
 userListCopy.apply(patchCopy);
 userListCopy.head.get('3').should.be.exactly(dan);

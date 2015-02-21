@@ -17,7 +17,6 @@ if (__DEV__) {
   Error.stackTraceLimit = Infinity;
 }
 var crc32 = require("crc-32").str;
-var sigmund = require("sigmund");
 var Immutable = require("immutable");
 
 var Patch = require("./Patch");
@@ -334,7 +333,7 @@ _.extend(Remutable.prototype, {
 _Remutable = Remutable;
 
 Remutable.hashFn = crc32;
-Remutable.signFn = sigmund;
+Remutable.signFn = JSON.stringify.bind(JSON);
 Remutable.Patch = Patch(Remutable);
 
 Object.assign(Remutable, { Consumer: Consumer, Producer: Producer });

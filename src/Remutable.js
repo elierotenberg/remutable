@@ -1,5 +1,4 @@
 const crc32 = require('crc-32').str;
-const sigmund = require('sigmund');
 const Immutable = require('immutable');
 
 const Patch = require('./Patch');
@@ -249,7 +248,7 @@ _.extend(Remutable.prototype, {
 _Remutable = Remutable;
 
 Remutable.hashFn = crc32;
-Remutable.signFn = sigmund;
+Remutable.signFn = JSON.stringify.bind(JSON);
 Remutable.Patch = Patch(Remutable);
 
 Object.assign(Remutable, { Consumer, Producer });
