@@ -15,7 +15,6 @@ if (__DEV__) {
 var Remutable = require("../");
 var Patch = Remutable.Patch;
 
-
 var robert = "Robert Heinlein";
 var isaac = "Isaac Asimov";
 var dan = "Dan Simmons";
@@ -69,11 +68,22 @@ userListCopy.apply(patchCopy);
 userListCopy.head.get("3").should.be.exactly(dan);
 
 // It's possible to implement an undo stack by reverting patches
-var revert = Patch.revert(patch);
-userListCopy.apply(revert);
-userListCopy.head.has("3").should.be.exactly(false);
-userListCopy.head.contains(dan).should.be.exactly(false);
-userListCopy.head.contains(isaac).should.be.exactly(true);
+userListCopy.set("4", bard);
+var patch1 = userListCopy.commit();
+userListCopy.set("5", manu);
+var patch2 = userListCopy.commit();
+userListCopy.head.has("5").should.be.exactly(true);
+userListCopy.head.contains(manu).should.be.exactly(true);
+var revert2 = Patch.revert(patch2);
+userListCopy.apply(revert2);
+userListCopy.head.has("4").should.be.exactly(true);
+userListCopy.head.has("5").should.be.exactly(false);
+userListCopy.head.contains(bard).should.be.exactly(true);
+userListCopy.head.contains(manu).should.be.exactly(false);
+var revert1 = Patch.revert(patch1);
+userListCopy.apply(revert1);
+userListCopy.head.has("4").should.be.exactly(false);
+userListCopy.head.contains(bard).should.be.exactly(false);
 
 // Several small patches can be combined into a bigger one
 var userListCopy2 = Remutable.fromJSON(userList.toJSON());

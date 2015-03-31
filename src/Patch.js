@@ -55,7 +55,11 @@ module.exports = function(Remutable) {
         const { f, t } = patch.mutations[key];
         mutations[key] = { f: t, t: f };
       });
-      return Patch.fromMutations({ mutations, hash: patch.to.h, version: patch.to.v });
+      return new Patch({
+        mutations,
+        from: { h: patch.to.h,    v: patch.to.v },
+        to:   { h: patch.from.h,  v: patch.from.v }
+      });
     }
 
     static fromMutations({ mutations, hash, version }) {
