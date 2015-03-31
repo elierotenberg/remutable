@@ -1,6 +1,6 @@
 "use strict";
 
-var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+var _createClass = (function () { function defineProperties(target, props) { for (var key in props) { var prop = props[key]; prop.configurable = true; if (prop.value) prop.writable = true; } Object.defineProperties(target, props); } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
 var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
@@ -22,6 +22,7 @@ module.exports = function (Remutable) {
       var mutations = _ref.mutations;
       var from = _ref.from;
       var to = _ref.to;
+
       _classCallCheck(this, Patch);
 
       if (__DEV__) {
@@ -42,7 +43,37 @@ module.exports = function (Remutable) {
       _.bindAll(this, ["toJS", "toJSON"]);
     }
 
-    _prototypeProperties(Patch, {
+    _createClass(Patch, {
+      source: {
+        get: function () {
+          return this.from.h;
+        }
+      },
+      target: {
+        get: function () {
+          return this.to.h;
+        }
+      },
+      toJS: {
+        value: function toJS() {
+          if (this._js === null) {
+            this._js = {
+              m: this.mutations,
+              f: this.from,
+              t: this.to };
+          }
+          return this._js;
+        }
+      },
+      toJSON: {
+        value: function toJSON() {
+          if (this._json === null) {
+            this._json = JSON.stringify(this.toJS());
+          }
+          return this._json;
+        }
+      }
+    }, {
       revert: {
         value: function revert(patch) {
           var mutations = {};
@@ -50,48 +81,47 @@ module.exports = function (Remutable) {
             var _patch$mutations$key = patch.mutations[key];
             var f = _patch$mutations$key.f;
             var t = _patch$mutations$key.t;
+
             mutations[key] = { f: t, t: f };
           });
-          return Patch.fromMutations({ mutations: mutations, hash: patch.to.h, version: patch.to.v });
-        },
-        writable: true,
-        configurable: true
+          return new Patch({
+            mutations: mutations,
+            from: { h: patch.to.h, v: patch.to.v },
+            to: { h: patch.from.h, v: patch.from.v }
+          });
+        }
       },
       fromMutations: {
         value: function fromMutations(_ref) {
           var mutations = _ref.mutations;
           var hash = _ref.hash;
           var version = _ref.version;
+
           var from = { h: hash, v: version };
           // New hash is calculated so that if two identical remutables are updated
           // using structurally equal mutations, then they will get the same hash.
           var to = { h: Remutable.hashFn(hash + Remutable.signFn(mutations)), v: version + 1 };
           return new Patch({ mutations: mutations, from: from, to: to });
-        },
-        writable: true,
-        configurable: true
+        }
       },
       fromJS: {
         value: function fromJS(_ref) {
           var m = _ref.m;
           var f = _ref.f;
           var t = _ref.t;
+
           if (__DEV__) {
             m.should.be.an.Object;
             f.should.be.an.Object;
             t.should.be.an.Object;
           }
           return new Patch({ mutations: m, from: f, to: t });
-        },
-        writable: true,
-        configurable: true
+        }
       },
       fromJSON: {
         value: function fromJSON(json) {
           return Patch.fromJS(JSON.parse(json));
-        },
-        writable: true,
-        configurable: true
+        }
       },
       combine: {
         value: function combine(patchA, patchB) {
@@ -105,9 +135,7 @@ module.exports = function (Remutable) {
             mutations: _.extend(_.clone(patchA.mutations), patchB.mutations),
             from: _.clone(patchA.from),
             to: _.clone(patchB.to) });
-        },
-        writable: true,
-        configurable: true
+        }
       },
       fromDiff: {
         value: function fromDiff(prev, next) {
@@ -133,45 +161,7 @@ module.exports = function (Remutable) {
             return mutations[key] = { f: prev.head.get(key), t: next.head.get(key) };
           });
           return new Patch({ mutations: mutations, from: from, to: to });
-        },
-        writable: true,
-        configurable: true
-      }
-    }, {
-      source: {
-        get: function () {
-          return this.from.h;
-        },
-        configurable: true
-      },
-      target: {
-        get: function () {
-          return this.to.h;
-        },
-        configurable: true
-      },
-      toJS: {
-        value: function toJS() {
-          if (this._js === null) {
-            this._js = {
-              m: this.mutations,
-              f: this.from,
-              t: this.to };
-          }
-          return this._js;
-        },
-        writable: true,
-        configurable: true
-      },
-      toJSON: {
-        value: function toJSON() {
-          if (this._json === null) {
-            this._json = JSON.stringify(this.toJS());
-          }
-          return this._json;
-        },
-        writable: true,
-        configurable: true
+        }
       }
     });
 

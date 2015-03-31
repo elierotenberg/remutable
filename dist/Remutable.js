@@ -1,6 +1,6 @@
 "use strict";
 
-var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+var _createClass = (function () { function defineProperties(target, props) { for (var key in props) { var prop = props[key]; prop.configurable = true; if (prop.value) prop.writable = true; } Object.defineProperties(target, props); } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
 var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
@@ -25,6 +25,7 @@ var _Remutable = undefined;
 
 var Consumer = function Consumer(ctx) {
   var _this = this;
+
   _classCallCheck(this, Consumer);
 
   if (__DEV__) {
@@ -48,6 +49,7 @@ var Consumer = function Consumer(ctx) {
 var Producer = (function () {
   function Producer(ctx) {
     var _this = this;
+
     _classCallCheck(this, Producer);
 
     if (__DEV__) {
@@ -69,24 +71,20 @@ var Producer = (function () {
     });
   }
 
-  _prototypeProperties(Producer, null, {
+  _createClass(Producer, {
     set: {
       value: function set() {
         // intercept set to make it chainable
         this._ctx.set.apply(this._ctx, arguments);
         return this;
-      },
-      writable: true,
-      configurable: true
+      }
     },
     apply: {
       value: function apply() {
         // intercept apply to make it chainable
         this._ctx.apply.apply(this._ctx, arguments);
         return this;
-      },
-      writable: true,
-      configurable: true
+      }
     }
   });
 
@@ -98,6 +96,7 @@ var Remutable = (function () {
     var data = arguments[0] === undefined ? {} : arguments[0];
     var version = arguments[1] === undefined ? 0 : arguments[1];
     var hash = arguments[2] === undefined ? null : arguments[2];
+
     _classCallCheck(this, Remutable);
 
     hash = hash || Remutable.hashFn(Remutable.signFn(data));
@@ -123,68 +122,41 @@ var Remutable = (function () {
       json: null };
   }
 
-  _prototypeProperties(Remutable, {
-    fromJS: {
-      value: function fromJS(_ref) {
-        var h = _ref.h;
-        var v = _ref.v;
-        var d = _ref.d;
-        return new Remutable(d, v, h);
-      },
-      writable: true,
-      configurable: true
-    },
-    fromJSON: {
-      value: function fromJSON(json) {
-        return Remutable.fromJS(JSON.parse(json));
-      },
-      writable: true,
-      configurable: true
-    }
-  }, {
+  _createClass(Remutable, {
     dirty: {
       get: function () {
         return this._dirty;
-      },
-      configurable: true
+      }
     },
     hash: {
       get: function () {
         return this._hash;
-      },
-      configurable: true
+      }
     },
     version: {
       get: function () {
         return this._version;
-      },
-      configurable: true
+      }
     },
     head: {
       get: function () {
         return this._head;
-      },
-      configurable: true
+      }
     },
     working: {
       get: function () {
         return this._working;
-      },
-      configurable: true
+      }
     },
     createConsumer: {
       value: function createConsumer() {
         return new Consumer(this);
-      },
-      writable: true,
-      configurable: true
+      }
     },
     createProducer: {
       value: function createProducer() {
         return new Producer(this);
-      },
-      writable: true,
-      configurable: true
+      }
     },
     destroy: {
       value: function destroy() {
@@ -194,9 +166,7 @@ var Remutable = (function () {
         this._dirty = null;
         this._mutations = null;
         this._serialized = null;
-      },
-      writable: true,
-      configurable: true
+      }
     },
     toJS: {
       value: function toJS() {
@@ -209,9 +179,7 @@ var Remutable = (function () {
               d: this._head.toJS() } };
         }
         return this._js.js;
-      },
-      writable: true,
-      configurable: true
+      }
     },
     toJSON: {
       value: function toJSON() {
@@ -221,16 +189,12 @@ var Remutable = (function () {
             json: JSON.stringify(this.toJS()) };
         }
         return this._json.json;
-      },
-      writable: true,
-      configurable: true
+      }
     },
     get: {
       value: function get(key) {
         return this._working.get(key);
-      },
-      writable: true,
-      configurable: true
+      }
     },
     set: {
       value: function set(key, val) {
@@ -246,16 +210,12 @@ var Remutable = (function () {
           this._working = this._working.set(key, val);
         }
         return this;
-      },
-      writable: true,
-      configurable: true
+      }
     },
     "delete": {
       value: function _delete(key) {
         return this.set(key, void 0);
-      },
-      writable: true,
-      configurable: true
+      }
     },
     commit: {
       value: function commit() {
@@ -270,9 +230,7 @@ var Remutable = (function () {
         this._hash = patch.to.h;
         this._version = patch.to.v;
         return patch;
-      },
-      writable: true,
-      configurable: true
+      }
     },
     rollback: {
       value: function rollback() {
@@ -280,9 +238,7 @@ var Remutable = (function () {
         this._mutations = {};
         this._dirty = false;
         return this;
-      },
-      writable: true,
-      configurable: true
+      }
     },
     match: {
       value: function match(patch) {
@@ -290,9 +246,7 @@ var Remutable = (function () {
           patch.should.be.an.instanceOf(Remutable.Patch);
         }
         return this._hash === patch.from.h;
-      },
-      writable: true,
-      configurable: true
+      }
     },
     apply: {
       value: function apply(patch) {
@@ -301,6 +255,7 @@ var Remutable = (function () {
         var head = this._head.withMutations(function (map) {
           Object.keys(patch.mutations).forEach(function (key) {
             var t = patch.mutations[key].t;
+
             if (t === void 0) {
               map = map["delete"](key);
             } else {
@@ -313,9 +268,22 @@ var Remutable = (function () {
         this._hash = patch.to.h;
         this._version = patch.to.v;
         return this;
-      },
-      writable: true,
-      configurable: true
+      }
+    }
+  }, {
+    fromJS: {
+      value: function fromJS(_ref) {
+        var h = _ref.h;
+        var v = _ref.v;
+        var d = _ref.d;
+
+        return new Remutable(d, v, h);
+      }
+    },
+    fromJSON: {
+      value: function fromJSON(json) {
+        return Remutable.fromJS(JSON.parse(json));
+      }
     }
   });
 
