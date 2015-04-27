@@ -1,5 +1,7 @@
 "use strict";
 
+var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
+
 var _createClass = (function () { function defineProperties(target, props) { for (var key in props) { var prop = props[key]; prop.configurable = true; if (prop.value) prop.writable = true; } Object.defineProperties(target, props); } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
 var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
@@ -16,10 +18,12 @@ if (__DEV__) {
   Promise.longStackTraces();
   Error.stackTraceLimit = Infinity;
 }
-var crc32 = require("crc-32").str;
-var Immutable = require("immutable");
 
-var Patch = require("./Patch");
+var crc32 = require("crc-32").str;
+
+var Immutable = _interopRequire(require("immutable"));
+
+var createPatch = _interopRequire(require("./Patch"));
 
 var _Remutable = undefined;
 
@@ -107,7 +111,7 @@ var Remutable = (function () {
     }
     _.bindAll(this, ["createConsumer", "createProducer", "destroy", "toJS", "toJSON", "get", "set", "delete", "commit", "rollback", "match", "apply"]);
 
-    this._head = Immutable.Map(data);
+    this._head = new Immutable.Map(data);
     this._working = this._head;
 
     this._version = version;
@@ -302,7 +306,7 @@ _Remutable = Remutable;
 
 Remutable.hashFn = crc32;
 Remutable.signFn = JSON.stringify.bind(JSON);
-Remutable.Patch = Patch(Remutable);
+Remutable.Patch = createPatch(Remutable);
 
 Object.assign(Remutable, { Consumer: Consumer, Producer: Producer });
 

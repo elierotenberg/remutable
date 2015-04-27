@@ -1,4 +1,4 @@
-module.exports = function(Remutable) {
+export default(Remutable) => {
   class Patch {
     constructor({ mutations, from, to }) {
       if(__DEV__) {
@@ -15,7 +15,7 @@ module.exports = function(Remutable) {
         from,
         to,
         _js: null,
-        _json: null,
+          _json: null,
       });
       _.bindAll(this, [
         'toJS',
@@ -57,26 +57,40 @@ module.exports = function(Remutable) {
       });
       return new Patch({
         mutations,
-        from: { h: patch.to.h,    v: patch.to.v },
-        to:   { h: patch.from.h,  v: patch.from.v }
+        from: { h: patch.to.h, v: patch.to.v },
+        to: { h: patch.from.h, v: patch.from.v },
       });
     }
 
-    static fromMutations({ mutations, hash, version }) {
-      const from = { h: hash, v: version };
+    static fromMutations({
+      mutations, hash, version
+    }) {
+      const from = {
+        h: hash,
+        v: version,
+      };
       // New hash is calculated so that if two identical remutables are updated
       // using structurally equal mutations, then they will get the same hash.
-      const to = { h: Remutable.hashFn(hash + Remutable.signFn(mutations)), v: version + 1 };
+      const to = {
+        h: Remutable.hashFn(hash + Remutable.signFn(mutations)),
+        v: version + 1,
+      };
       return new Patch({ mutations, from, to });
     }
 
-    static fromJS({ m, f, t }) {
+    static fromJS({
+      m, f, t
+    }) {
       if(__DEV__) {
         m.should.be.an.Object;
         f.should.be.an.Object;
         t.should.be.an.Object;
       }
-      return new Patch({ mutations: m, from: f, to: t });
+      return new Patch({
+        mutations: m,
+        from: f,
+        to: t,
+      });
     }
 
     static fromJSON(json) {
@@ -115,14 +129,16 @@ module.exports = function(Remutable) {
       const diffKeys = {};
       [prev, next].forEach((rem) =>
         rem.head.forEach((val, key) =>
-          prev.head.get(key) !== next.head.get(key) ? (diffKeys[key] = null) : void 0
+          prev.head.get(key) !== next.head.get(key) ? (diffKeys[key] = null) : void val
         )
       );
-      Object.keys(diffKeys).forEach((key) => mutations[key] = { f: prev.head.get(key), t: next.head.get(key) });
+      Object.keys(diffKeys).forEach((key) => mutations[key] = {
+        f: prev.head.get(key),
+        t: next.head.get(key),
+      });
       return new Patch({ mutations, from, to });
     }
   }
 
   return Patch;
 };
-

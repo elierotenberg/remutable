@@ -1,7 +1,6 @@
-const crc32 = require('crc-32').str;
-const Immutable = require('immutable');
-
-const Patch = require('./Patch');
+import { str as crc32 } from 'crc-32';
+import Immutable from 'immutable';
+import createPatch from './Patch';
 
 let _Remutable;
 
@@ -75,7 +74,7 @@ class Remutable {
       'apply',
     ]);
 
-    this._head = Immutable.Map(data);
+    this._head = new Immutable.Map(data);
     this._working = this._head;
 
     this._version = version;
@@ -249,8 +248,8 @@ _Remutable = Remutable;
 
 Remutable.hashFn = crc32;
 Remutable.signFn = JSON.stringify.bind(JSON);
-Remutable.Patch = Patch(Remutable);
+Remutable.Patch = createPatch(Remutable);
 
 Object.assign(Remutable, { Consumer, Producer });
 
-module.exports = Remutable;
+export default Remutable;

@@ -1,1 +1,2 @@
-module.exports = require('./Remutable');
+import Remutable from './Remutable';
+export default Remutable;

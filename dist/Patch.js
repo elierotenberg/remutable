@@ -16,6 +16,7 @@ if (__DEV__) {
   Promise.longStackTraces();
   Error.stackTraceLimit = Infinity;
 }
+
 module.exports = function (Remutable) {
   var Patch = (function () {
     function Patch(_ref) {
@@ -87,8 +88,7 @@ module.exports = function (Remutable) {
           return new Patch({
             mutations: mutations,
             from: { h: patch.to.h, v: patch.to.v },
-            to: { h: patch.from.h, v: patch.from.v }
-          });
+            to: { h: patch.from.h, v: patch.from.v } });
         }
       },
       fromMutations: {
@@ -97,10 +97,14 @@ module.exports = function (Remutable) {
           var hash = _ref.hash;
           var version = _ref.version;
 
-          var from = { h: hash, v: version };
+          var from = {
+            h: hash,
+            v: version };
           // New hash is calculated so that if two identical remutables are updated
           // using structurally equal mutations, then they will get the same hash.
-          var to = { h: Remutable.hashFn(hash + Remutable.signFn(mutations)), v: version + 1 };
+          var to = {
+            h: Remutable.hashFn(hash + Remutable.signFn(mutations)),
+            v: version + 1 };
           return new Patch({ mutations: mutations, from: from, to: to });
         }
       },
@@ -115,7 +119,10 @@ module.exports = function (Remutable) {
             f.should.be.an.Object;
             t.should.be.an.Object;
           }
-          return new Patch({ mutations: m, from: f, to: t });
+          return new Patch({
+            mutations: m,
+            from: f,
+            to: t });
         }
       },
       fromJSON: {
@@ -154,11 +161,13 @@ module.exports = function (Remutable) {
           var diffKeys = {};
           [prev, next].forEach(function (rem) {
             return rem.head.forEach(function (val, key) {
-              return prev.head.get(key) !== next.head.get(key) ? diffKeys[key] = null : void 0;
+              return prev.head.get(key) !== next.head.get(key) ? diffKeys[key] = null : void val;
             });
           });
           Object.keys(diffKeys).forEach(function (key) {
-            return mutations[key] = { f: prev.head.get(key), t: next.head.get(key) };
+            return mutations[key] = {
+              f: prev.head.get(key),
+              t: next.head.get(key) };
           });
           return new Patch({ mutations: mutations, from: from, to: to });
         }
