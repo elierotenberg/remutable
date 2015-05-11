@@ -40,12 +40,14 @@ class Producer {
     }));
   }
 
-  set() { // intercept set to make it chainable
+  // intercept set to make it chainable
+  set() {
     this._ctx.set.apply(this._ctx, arguments);
     return this;
   }
 
-  apply() { // intercept apply to make it chainable
+  // intercept apply to make it chainable
+  apply() {
     this._ctx.apply.apply(this._ctx, arguments);
     return this;
   }
