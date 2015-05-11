@@ -104,8 +104,10 @@ export default(Remutable) => {
         // One can only combine compatible patches
         patchA.target.should.be.exactly(patchB.source);
       }
+      const mutations = _.clone(patchA.mutations);
+      _.extend(mutations.values.t, patchB.mutations.values.t);
       return new Patch({
-        mutations: _.extend(_.clone(patchA.mutations), patchB.mutations),
+        mutations,
         from: _.clone(patchA.from),
         to: _.clone(patchB.to),
       });
