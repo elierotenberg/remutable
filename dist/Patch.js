@@ -1,14 +1,19 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', {
+var _createClass = require('babel-runtime/helpers/create-class')['default'];
+
+var _classCallCheck = require('babel-runtime/helpers/class-call-check')['default'];
+
+var _Object$defineProperty = require('babel-runtime/core-js/object/define-property')['default'];
+
+var _Object$assign = require('babel-runtime/core-js/object/assign')['default'];
+
+var _Object$keys = require('babel-runtime/core-js/object/keys')['default'];
+
+_Object$defineProperty(exports, '__esModule', {
   value: true
 });
 
-var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-require('babel/polyfill');
 var _ = require('lodash');
 var should = require('should');
 var Promise = (global || window).Promise = require('bluebird');
@@ -39,7 +44,7 @@ exports['default'] = function (Remutable) {
         to.h.should.be.ok;
         to.v.should.be.a.Number;
       }
-      Object.assign(this, {
+      _Object$assign(this, {
         mutations: mutations,
         from: from,
         to: to,
@@ -81,7 +86,7 @@ exports['default'] = function (Remutable) {
       key: 'revert',
       value: function revert(patch) {
         var mutations = {};
-        Object.keys(patch.mutations).forEach(function (key) {
+        _Object$keys(patch.mutations).forEach(function (key) {
           var _patch$mutations$key = patch.mutations[key];
           var f = _patch$mutations$key.f;
           var t = _patch$mutations$key.t;
@@ -167,7 +172,7 @@ exports['default'] = function (Remutable) {
             return prev.head.get(key) !== next.head.get(key) ? diffKeys[key] = null : void val;
           });
         });
-        Object.keys(diffKeys).forEach(function (key) {
+        _Object$keys(diffKeys).forEach(function (key) {
           return mutations[key] = {
             f: prev.head.get(key),
             t: next.head.get(key) };

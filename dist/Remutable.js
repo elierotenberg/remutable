@@ -1,14 +1,20 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', {
+var _classCallCheck = require('babel-runtime/helpers/class-call-check')['default'];
+
+var _createClass = require('babel-runtime/helpers/create-class')['default'];
+
+var _Object$defineProperty = require('babel-runtime/core-js/object/define-property')['default'];
+
+var _Object$keys = require('babel-runtime/core-js/object/keys')['default'];
+
+var _Object$assign = require('babel-runtime/core-js/object/assign')['default'];
+
+var _interopRequireDefault = require('babel-runtime/helpers/interop-require-default')['default'];
+
+_Object$defineProperty(exports, '__esModule', {
   value: true
 });
-
-var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
 var _crc32 = require('crc-32');
 
@@ -20,7 +26,6 @@ var _Patch = require('./Patch');
 
 var _Patch2 = _interopRequireDefault(_Patch);
 
-require('babel/polyfill');
 var _ = require('lodash');
 var should = require('should');
 var Promise = (global || window).Promise = require('bluebird');
@@ -50,7 +55,7 @@ var Consumer = function Consumer(ctx) {
   });
   // proxy all these property getters to ctx
   ['head', 'hash', 'version'].forEach(function (p) {
-    return Object.defineProperty(_this, p, {
+    return _Object$defineProperty(_this, p, {
       enumerable: true,
       get: function get() {
         return ctx[p];
@@ -75,7 +80,7 @@ var Producer = (function () {
     });
     // proxy all these property getters to ctx
     ['head', 'working', 'hash', 'version'].forEach(function (p) {
-      return Object.defineProperty(_this2, p, {
+      return _Object$defineProperty(_this2, p, {
         enumerable: true,
         get: function get() {
           return ctx[p];
@@ -266,7 +271,7 @@ var Remutable = (function () {
       this._dirty.should.not.be.ok;
       this.match(patch).should.be.ok;
       var head = this._head.withMutations(function (map) {
-        Object.keys(patch.mutations).forEach(function (key) {
+        _Object$keys(patch.mutations).forEach(function (key) {
           var t = patch.mutations[key].t;
 
           if (t === void 0) {
@@ -313,9 +318,9 @@ _Remutable = Remutable;
 
 Remutable.hashFn = _crc32.str;
 Remutable.signFn = JSON.stringify.bind(JSON);
-Remutable.Patch = _Patch2['default'](Remutable);
+Remutable.Patch = (0, _Patch2['default'])(Remutable);
 
-Object.assign(Remutable, { Consumer: Consumer, Producer: Producer });
+_Object$assign(Remutable, { Consumer: Consumer, Producer: Producer });
 
 exports['default'] = Remutable;
 module.exports = exports['default'];
