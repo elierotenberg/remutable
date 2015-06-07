@@ -59,7 +59,8 @@ var Consumer = function Consumer(ctx) {
       enumerable: true,
       get: function get() {
         return ctx[p];
-      } });
+      }
+    });
   });
 };
 
@@ -84,7 +85,8 @@ var Producer = (function () {
         enumerable: true,
         get: function get() {
           return ctx[p];
-        } });
+        }
+      });
     });
   }
 
@@ -134,38 +136,15 @@ var Remutable = (function () {
     this._mutations = {};
     this._js = {
       hash: {},
-      js: null };
+      js: null
+    };
     this._json = {
       hash: {},
-      json: null };
+      json: null
+    };
   }
 
   _createClass(Remutable, [{
-    key: 'dirty',
-    get: function () {
-      return this._dirty;
-    }
-  }, {
-    key: 'hash',
-    get: function () {
-      return this._hash;
-    }
-  }, {
-    key: 'version',
-    get: function () {
-      return this._version;
-    }
-  }, {
-    key: 'head',
-    get: function () {
-      return this._head;
-    }
-  }, {
-    key: 'working',
-    get: function () {
-      return this._working;
-    }
-  }, {
     key: 'createConsumer',
     value: function createConsumer() {
       return new Consumer(this);
@@ -194,7 +173,9 @@ var Remutable = (function () {
           js: {
             h: this._hash,
             v: this._version,
-            d: this._head.toJS() } };
+            d: this._head.toJS()
+          }
+        };
       }
       return this._js.js;
     }
@@ -204,7 +185,8 @@ var Remutable = (function () {
       if (this._json.hash !== this._hash) {
         this._json = {
           hash: this._hash,
-          json: JSON.stringify(this.toJS()) };
+          json: JSON.stringify(this.toJS())
+        };
       }
       return this._json.json;
     }
@@ -237,11 +219,11 @@ var Remutable = (function () {
   }, {
     key: 'commit',
     value: function commit() {
-      this._dirty.should.be.ok;
       var patch = Remutable.Patch.fromMutations({
         mutations: this._mutations,
         hash: this._hash,
-        version: this._version });
+        version: this._version
+      });
       this._head = this._working;
       this._mutations = {};
       this._dirty = false;
@@ -287,6 +269,31 @@ var Remutable = (function () {
       this._version = patch.to.v;
       return this;
     }
+  }, {
+    key: 'dirty',
+    get: function () {
+      return this._dirty;
+    }
+  }, {
+    key: 'hash',
+    get: function () {
+      return this._hash;
+    }
+  }, {
+    key: 'version',
+    get: function () {
+      return this._version;
+    }
+  }, {
+    key: 'head',
+    get: function () {
+      return this._head;
+    }
+  }, {
+    key: 'working',
+    get: function () {
+      return this._working;
+    }
   }], [{
     key: 'fromJS',
     value: function fromJS(_ref) {
@@ -312,7 +319,8 @@ _.extend(Remutable.prototype, {
   _mutations: null,
   _hash: null,
   _version: null,
-  _dirty: null });
+  _dirty: null
+});
 
 _Remutable = Remutable;
 

@@ -49,28 +49,20 @@ exports['default'] = function (Remutable) {
         from: from,
         to: to,
         _js: null,
-        _json: null });
+        _json: null
+      });
       _.bindAll(this, ['toJS', 'toJSON']);
     }
 
     _createClass(Patch, [{
-      key: 'source',
-      get: function () {
-        return this.from.h;
-      }
-    }, {
-      key: 'target',
-      get: function () {
-        return this.to.h;
-      }
-    }, {
       key: 'toJS',
       value: function toJS() {
         if (this._js === null) {
           this._js = {
             m: this.mutations,
             f: this.from,
-            t: this.to };
+            t: this.to
+          };
         }
         return this._js;
       }
@@ -81,6 +73,16 @@ exports['default'] = function (Remutable) {
           this._json = JSON.stringify(this.toJS());
         }
         return this._json;
+      }
+    }, {
+      key: 'source',
+      get: function () {
+        return this.from.h;
+      }
+    }, {
+      key: 'target',
+      get: function () {
+        return this.to.h;
       }
     }], [{
       key: 'revert',
@@ -96,7 +98,8 @@ exports['default'] = function (Remutable) {
         return new Patch({
           mutations: mutations,
           from: { h: patch.to.h, v: patch.to.v },
-          to: { h: patch.from.h, v: patch.from.v } });
+          to: { h: patch.from.h, v: patch.from.v }
+        });
       }
     }, {
       key: 'fromMutations',
@@ -107,12 +110,14 @@ exports['default'] = function (Remutable) {
 
         var from = {
           h: hash,
-          v: version };
+          v: version
+        };
         // New hash is calculated so that if two identical remutables are updated
         // using structurally equal mutations, then they will get the same hash.
         var to = {
           h: Remutable.hashFn(hash + Remutable.signFn(mutations)),
-          v: version + 1 };
+          v: version + 1
+        };
         return new Patch({ mutations: mutations, from: from, to: to });
       }
     }, {
@@ -130,7 +135,8 @@ exports['default'] = function (Remutable) {
         return new Patch({
           mutations: m,
           from: f,
-          to: t });
+          to: t
+        });
       }
     }, {
       key: 'fromJSON',
@@ -149,7 +155,8 @@ exports['default'] = function (Remutable) {
         return new Patch({
           mutations: _.extend(_.clone(patchA.mutations), patchB.mutations),
           from: _.clone(patchA.from),
-          to: _.clone(patchB.to) });
+          to: _.clone(patchB.to)
+        });
       }
     }, {
       key: 'fromDiff',
@@ -161,10 +168,12 @@ exports['default'] = function (Remutable) {
         }
         var from = {
           h: prev.hash,
-          v: prev.version };
+          v: prev.version
+        };
         var to = {
           h: next.hash,
-          v: next.version };
+          v: next.version
+        };
         var mutations = {};
         var diffKeys = {};
         [prev, next].forEach(function (rem) {
@@ -175,7 +184,8 @@ exports['default'] = function (Remutable) {
         _Object$keys(diffKeys).forEach(function (key) {
           return mutations[key] = {
             f: prev.head.get(key),
-            t: next.head.get(key) };
+            t: next.head.get(key)
+          };
         });
         return new Patch({ mutations: mutations, from: from, to: to });
       }

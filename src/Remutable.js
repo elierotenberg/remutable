@@ -179,7 +179,6 @@ class Remutable {
   }
 
   commit() {
-    this._dirty.should.be.ok;
     const patch = Remutable.Patch.fromMutations({
       mutations: this._mutations,
       hash: this._hash,
