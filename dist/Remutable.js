@@ -8,8 +8,6 @@ var _Object$defineProperty = require('babel-runtime/core-js/object/define-proper
 
 var _Object$keys = require('babel-runtime/core-js/object/keys')['default'];
 
-var _Object$assign = require('babel-runtime/core-js/object/assign')['default'];
-
 var _interopRequireDefault = require('babel-runtime/helpers/interop-require-default')['default'];
 
 _Object$defineProperty(exports, '__esModule', {
@@ -22,23 +20,13 @@ var _immutable = require('immutable');
 
 var _immutable2 = _interopRequireDefault(_immutable);
 
-var _Patch = require('./Patch');
+require('should');
 
-var _Patch2 = _interopRequireDefault(_Patch);
+var _lodash = require('lodash');
 
-var _ = require('lodash');
-var should = require('should');
-var Promise = (global || window).Promise = require('bluebird');
-var __DEV__ = process.env.NODE_ENV !== 'production';
-var __PROD__ = !__DEV__;
-var __BROWSER__ = typeof window === 'object';
-var __NODE__ = !__BROWSER__;
-if (__DEV__) {
-  Promise.longStackTraces();
-  Error.stackTraceLimit = Infinity;
-}
+var _lodash2 = _interopRequireDefault(_lodash);
 
-var _Remutable = undefined;
+var Remutable = null;
 
 var Consumer = function Consumer(ctx) {
   var _this = this;
@@ -46,15 +34,15 @@ var Consumer = function Consumer(ctx) {
   _classCallCheck(this, Consumer);
 
   if (__DEV__) {
-    ctx.should.be.an.instanceOf(_Remutable);
+    ctx.should.be.an.instanceOf(Remutable);
   }
   this._ctx = ctx;
   // proxy all these methods to ctx
-  ['toJS', 'toJSON'].forEach(function (m) {
+  _lodash2['default'].each(['toJS', 'toJSON'], function (m) {
     return _this[m] = ctx[m];
   });
   // proxy all these property getters to ctx
-  ['head', 'hash', 'version'].forEach(function (p) {
+  _lodash2['default'].each(['head', 'hash', 'version'], function (p) {
     return _Object$defineProperty(_this, p, {
       enumerable: true,
       get: function get() {
@@ -71,16 +59,16 @@ var Producer = (function () {
     _classCallCheck(this, Producer);
 
     if (__DEV__) {
-      ctx.should.be.an.instanceOf(_Remutable);
+      ctx.should.be.an.instanceOf(Remutable);
     }
-    _.bindAll(this, ['set', 'apply']);
+    _lodash2['default'].bindAll(this, ['set', 'apply']);
     this._ctx = ctx;
     // proxy all these methods to ctx
-    ['delete', 'rollback', 'commit', 'match', 'toJS', 'toJSON'].forEach(function (m) {
+    _lodash2['default'].each(['delete', 'rollback', 'commit', 'match', 'toJS', 'toJSON'], function (m) {
       return _this2[m] = ctx[m];
     });
     // proxy all these property getters to ctx
-    ['head', 'working', 'hash', 'version'].forEach(function (p) {
+    _lodash2['default'].each(['head', 'working', 'hash', 'version'], function (p) {
       return _Object$defineProperty(_this2, p, {
         enumerable: true,
         get: function get() {
@@ -111,13 +99,20 @@ var Producer = (function () {
   return Producer;
 })();
 
-var Remutable = (function () {
-  function Remutable() {
+Remutable = (function () {
+  var _class = function () {
     var data = arguments[0] === undefined ? {} : arguments[0];
     var version = arguments[1] === undefined ? 0 : arguments[1];
     var hash = arguments[2] === undefined ? null : arguments[2];
 
-    _classCallCheck(this, Remutable);
+    _classCallCheck(this, _class);
+
+    this._head = null;
+    this._working = null;
+    this._mutations = null;
+    this._hash = null;
+    this._version = null;
+    this._dirty = null;
 
     hash = hash || Remutable.hashFn(Remutable.signFn(data));
 
@@ -125,7 +120,7 @@ var Remutable = (function () {
       data.should.be.an.Object;
       version.should.be.a.Number;
     }
-    _.bindAll(this, ['createConsumer', 'createProducer', 'destroy', 'toJS', 'toJSON', 'get', 'set', 'delete', 'commit', 'rollback', 'match', 'apply']);
+    _lodash2['default'].bindAll(this, ['createConsumer', 'createProducer', 'destroy', 'toJS', 'toJSON', 'get', 'set', 'delete', 'commit', 'rollback', 'match', 'apply']);
 
     this._head = new _immutable2['default'].Map(data);
     this._working = this._head;
@@ -142,9 +137,9 @@ var Remutable = (function () {
       hash: {},
       json: null
     };
-  }
+  };
 
-  _createClass(Remutable, [{
+  _createClass(_class, [{
     key: 'createConsumer',
     value: function createConsumer() {
       return new Consumer(this);
@@ -198,7 +193,9 @@ var Remutable = (function () {
   }, {
     key: 'set',
     value: function set(key, val) {
-      key.should.be.a.String;
+      if (__DEV__) {
+        key.should.be.a.String;
+      }
       this._dirty = true;
       // Retain the previous value to make the patch reversible
       var f = this._head.get(key);
@@ -308,27 +305,32 @@ var Remutable = (function () {
     value: function fromJSON(json) {
       return Remutable.fromJS(JSON.parse(json));
     }
+  }, {
+    key: 'Patch',
+
+    // placeholder reference
+    value: null,
+    enumerable: true
+  }, {
+    key: 'hashFn',
+    value: _crc32.str,
+    enumerable: true
+  }, {
+    key: 'signFn',
+    value: JSON.stringify.bind(JSON),
+    enumerable: true
+  }, {
+    key: 'Consumer',
+    value: Consumer,
+    enumerable: true
+  }, {
+    key: 'Producer',
+    value: Producer,
+    enumerable: true
   }]);
 
-  return Remutable;
+  return _class;
 })();
-
-_.extend(Remutable.prototype, {
-  _head: null,
-  _working: null,
-  _mutations: null,
-  _hash: null,
-  _version: null,
-  _dirty: null
-});
-
-_Remutable = Remutable;
-
-Remutable.hashFn = _crc32.str;
-Remutable.signFn = JSON.stringify.bind(JSON);
-Remutable.Patch = (0, _Patch2['default'])(Remutable);
-
-_Object$assign(Remutable, { Consumer: Consumer, Producer: Producer });
 
 exports['default'] = Remutable;
 module.exports = exports['default'];

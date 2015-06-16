@@ -1,23 +1,32 @@
 import { str as crc32 } from 'crc-32';
 import Immutable from 'immutable';
-import createPatch from './Patch';
+import 'should';
+import _ from 'lodash';
+const __DEV__ = process.env.NODE_ENV === 'development';
 
-let _Remutable;
+let Remutable = null;
 
 class Consumer {
   constructor(ctx) {
     if(__DEV__) {
-      ctx.should.be.an.instanceOf(_Remutable);
+      ctx.should.be.an.instanceOf(Remutable);
     }
     this._ctx = ctx;
     // proxy all these methods to ctx
-    ['toJS', 'toJSON']
-    .forEach((m) => this[m] = ctx[m]);
+    _.each([
+      'toJS',
+      'toJSON',
+    ], (m) => this[m] = ctx[m]);
     // proxy all these property getters to ctx
-    ['head', 'hash', 'version']
-    .forEach((p) => Object.defineProperty(this, p, {
-        enumerable: true,
-        get: () => ctx[p],
+    _.each([
+      'head',
+      'hash',
+      'version',
+    ], (p) => Object.defineProperty(this, p, {
+      enumerable: true,
+      get() {
+        return ctx[p];
+      },
     }));
   }
 }
@@ -25,18 +34,35 @@ class Consumer {
 class Producer {
   constructor(ctx) {
     if(__DEV__) {
-      ctx.should.be.an.instanceOf(_Remutable);
+      ctx.should.be.an.instanceOf(Remutable);
     }
-    _.bindAll(this, ['set', 'apply']);
+    _.bindAll(this, [
+      'set',
+      'apply',
+    ]);
     this._ctx = ctx;
     // proxy all these methods to ctx
-    ['delete', 'rollback', 'commit', 'match', 'toJS', 'toJSON']
-    .forEach((m) => this[m] = ctx[m]);
+    _.each([
+      'delete',
+      'rollback',
+      'commit',
+      'match',
+      'toJS',
+      'toJSON',
+    ], (m) =>
+      this[m] = ctx[m]
+    );
     // proxy all these property getters to ctx
-    ['head', 'working', 'hash', 'version']
-    .forEach((p) => Object.defineProperty(this, p, {
+    _.each([
+      'head',
+      'working',
+      'hash',
+      'version',
+    ], (p) => Object.defineProperty(this, p, {
       enumerable: true,
-      get: () => ctx[p],
+      get() {
+        return ctx[p];
+      },
     }));
   }
 
@@ -53,7 +79,22 @@ class Producer {
   }
 }
 
-class Remutable {
+Remutable = class {
+  // placeholder reference
+  static Patch = null;
+
+  static hashFn = crc32;
+  static signFn = JSON.stringify.bind(JSON);
+  static Consumer = Consumer;
+  static Producer = Producer;
+
+  _head = null;
+  _working = null;
+  _mutations = null;
+  _hash = null;
+  _version = null;
+  _dirty = null;
+
   constructor(data = {}, version = 0, hash = null) {
     hash = hash || Remutable.hashFn(Remutable.signFn(data));
 
@@ -159,7 +200,9 @@ class Remutable {
   }
 
   set(key, val) {
-    key.should.be.a.String;
+    if(__DEV__) {
+      key.should.be.a.String;
+    }
     this._dirty = true;
     // Retain the previous value to make the patch reversible
     const f = this._head.get(key);
@@ -234,23 +277,6 @@ class Remutable {
   static fromJSON(json) {
     return Remutable.fromJS(JSON.parse(json));
   }
-}
-
-_.extend(Remutable.prototype, {
-  _head: null,
-  _working: null,
-  _mutations: null,
-  _hash: null,
-  _version: null,
-  _dirty: null,
-});
-
-_Remutable = Remutable;
-
-Remutable.hashFn = crc32;
-Remutable.signFn = JSON.stringify.bind(JSON);
-Remutable.Patch = createPatch(Remutable);
-
-Object.assign(Remutable, { Consumer, Producer });
+};
 
 export default Remutable;

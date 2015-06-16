@@ -136,6 +136,10 @@ userListConsummer.head.get('5').should.be.exactly(manu);
 
 ```
 
+Usage
+=====
+
+This package uses `babel`. If you use it in your own projects, make sure to use at least the [babel require hook](https://babeljs.io/docs/usage/require/).
 
 API
 ===
