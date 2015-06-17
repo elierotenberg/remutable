@@ -1,5 +1,6 @@
 require('babel/register')({
-  optional: ['runtime']
+  only: /\.jsx$/,
+  optional: ['runtime'],
 });
 
 var eslint = require('gulp-eslint');
@@ -15,10 +16,10 @@ function lint() {
 }
 
 function test() {
-  return gulp.src('src/__tests__/*.js')
+  return gulp.src('src/__tests__/**/*.jsx')
     .pipe(mocha());
 }
 
 gulp.task('lint', lint);
-gulp.task('test', test);
-gulp.task('default', ['lint', 'test']);
+gulp.task('test', ['lint'], test);
+gulp.task('default', ['test']);

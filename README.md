@@ -10,7 +10,6 @@ Implementation is backed by the awesome Immutable-JS lib.
 ### The problem
 
 Immutable-JS is neat, but what happens when you want to share Immutable objects over the wire, across a transport which doesn't understand Javascript reference identity?
-
 Remutable solves this by leveraging a simple fact: if you apply the same set of mutations, in the same order, to the same initial state, then the final state will also be the same. Internally, Remutable uses patch hashing to preserve the identity check constant-time, as the hash of the current state is computed by recursively hashing the initial state and each subsequent mutation (think git commit hash).
 
 We can illustrate this pseudocode diagram:
@@ -139,7 +138,7 @@ userListConsummer.head.get('5').should.be.exactly(manu);
 Usage
 =====
 
-This package uses `babel`. If you use it in your own projects, make sure to use at least the [babel require hook](https://babeljs.io/docs/usage/require/).
+This module is written in ES6/7. You will need `babel` to use it.
 
 API
 ===
