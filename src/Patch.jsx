@@ -111,11 +111,13 @@ class Patch {
     });
   }
 
-  static fromDiff(prev, next) {
+  static fromDiff(prev, next, ignoreVersion = false) {
     if(__DEV__) {
       (prev instanceof Remutable || prev instanceof Remutable.Consumer).should.be.ok;
       (next instanceof Remutable || next instanceof Remutable.Consumer).should.be.ok;
-      prev.version.should.be.below(next.version);
+      if(!ignoreVersion) {
+        prev.version.should.be.below(next.version);
+      }
     }
     const from = {
       h: prev.hash,
