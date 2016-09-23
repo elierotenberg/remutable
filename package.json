@@ -1,0 +1,34 @@
+{
+  "name": "remutable",
+  "version": "4.0.0-develop",
+  "description": "Like Immutable, but actually mutable with diffs and versions.",
+  "main": "src/index.jsx",
+  "scripts": {
+    "test": "gulp test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/elierotenberg/remutable.git"
+  },
+  "author": "Elie Rotenberg <elie@rotenberg.io>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/elierotenberg/remutable/issues"
+  },
+  "homepage": "https://github.com/elierotenberg/remutable",
+  "dependencies": {
+    "babel-runtime": "^6.11.6"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.14.0",
+    "babel-eslint": "^6.1.2",
+    "babel-plugin-transform-runtime": "^6.15.0",
+    "babel-preset-latest": "^6.14.0",
+    "eslint": "^3.5.0",
+    "eslint-plugin-babel": "^3.3.0",
+    "gulp": "^3.9.1",
+    "gulp-babel": "^6.1.2",
+    "gulp-eslint": "^3.0.1",
+    "gulp-mocha": "^3.0.1"
+  }
+}
